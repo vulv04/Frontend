@@ -1,0 +1,38 @@
+const translations = {
+  vi: {
+    home: "Trang chủ",
+    shop: "Sản phẩm",
+    about: "Giới thiệu",
+    blog: "Blog",
+    contact: "Liên hệ",
+    news: "Tin tức",
+    profile: "Trang cá nhân",
+    logout: "Đăng xuất",
+    login: "Đăng nhập",
+    register: "Đăng ký",
+    categoryPage: "Danh mục",
+    categories: "Danh mục",
+    loading: "Đang tải...",
+    noCategories: "Không có danh mục",
+    errorLoading: "Không tải được danh mục",
+  },
+  en: {
+    home: "Home",
+    shop: "Shop",
+    about: "About",
+    blog: "Blog",
+    contact: "Contact",
+    news: "News",
+    profile: "Profile",
+    logout: "Logout",
+    login: "Login",
+    register: "Register",
+    categoryPage: "Category Page",
+    categories: "Categories",
+    loading: "Loading...",
+    noCategories: "No categories",
+    errorLoading: "Failed to load categories",
+  },
+};
+
+export default translations;
