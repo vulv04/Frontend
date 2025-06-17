@@ -7,7 +7,6 @@ import { adminRoutes } from "./adminRoutes";
 import ProtectedRoute from "../components/ProtecedRoute";
 import LoginPage from "../pages/common/LoginPage";
 import RegisterPage from "../pages/common/RegisterPage";
-import AutoScrollToTop from "../contexts/AutoScrollToTop";
 
 const router = createBrowserRouter([
   // * Layout Client
@@ -31,8 +30,8 @@ const router = createBrowserRouter([
   },
 
   // * Layout Empty
-  { path: "api/auth/login", element: <LoginPage /> },
-  { path: "api/auth/register", element: <RegisterPage /> },
+  { path: "/api/auth/login", element: <LoginPage /> },
+  { path: "/api/auth/register", element: <RegisterPage /> },
   { path: "*", element: <NotFoundPage /> },
 ]);
 

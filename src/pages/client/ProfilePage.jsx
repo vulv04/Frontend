@@ -2,11 +2,10 @@ import React from "react";
 import { useParams, Navigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // ✅ Dùng đúng tên param
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // Nếu chưa login, hoặc id không trùng với user hiện tại, redirect về login hoặc trang khác
-  if (!user) {
+  if (!user || !user.id) {
     return (
       <div className="container mt-5">
         <div className="alert alert-warning text-center">
@@ -16,8 +15,8 @@ const ProfilePage = () => {
     );
   }
 
-  if (user.id.toString() !== id) {
-    return <Navigate to="/" replace />; // hoặc redirect về trang nào bạn muốn
+  if (user.id.toString() !== id.toString()) {
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -25,7 +24,9 @@ const ProfilePage = () => {
       <div className="card shadow-sm">
         <div className="card-body text-center">
           <img
-            src={`https://ui-avatars.com/api/?name=${user.username}&background=random`}
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+              user?.username || "User"
+            )}&background=random`}
             alt="Avatar"
             className="rounded-circle mb-3"
             style={{ width: "100px", height: "100px" }}

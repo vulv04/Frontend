@@ -35,9 +35,6 @@ export const clientRoutes = [
   { path: "categories", element: <CategoryPage /> },
 
 
-  // profile
-  { path: "me/profile", element: <ProfilePage /> },
-
   // cart & checkout
   { path: "cart", element: <CartPage /> },
   { path: "checkout", element: <CheckoutPage /> },
@@ -49,7 +46,7 @@ export const clientRoutes = [
   { path: "tin-tuc", element: <NewsPage /> },
 
   // user
-  { path: "me/profile/:id", element: <ProfilePage /> },
+  { path: "/me/profile/:id", element: <ProfilePage /> },
   { path: "me/orders", element: <OrderPage /> },
   { path: "me/wishlist", element: <WishListProductPage /> },
 ];

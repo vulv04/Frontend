@@ -40,6 +40,7 @@ const Container = styled.div`
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const nav = useNavigate();
   const EyeOpenIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -75,14 +76,13 @@ const RegisterPage = () => {
   });
 
   const onSubmit = async (data) => {
-    nav = useNavigate();
     try {
       delete data.confirmPassword;
       const res = await registerApi(data);
       console.log(res);
       reset();
       toast.success("Register successfully!");
-      nav("api/auth/login");
+      nav("/api/auth/login");
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data.message || "Đăng ký thất bại!");

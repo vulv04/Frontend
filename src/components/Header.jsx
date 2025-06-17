@@ -106,7 +106,7 @@ const Header = () => {
                     <li>
                       <NavLink
                         className="dropdown-item"
-                        to={`/me/profile/${user.id || user._id}`}
+                        to={`/me/profile/${user.id}`}
                       >
                         {t("profile")}
                       </NavLink>
@@ -128,12 +128,7 @@ const Header = () => {
               ) : (
                 <>
                   <li className="nav-item">
-                    <NavLink to="/api/auth/login" className="nav-link">
-                      {t("login")}
-                    </NavLink>
-                  </li>
-                  <li className="nav-item">
-                    <NavLink to="/api/auth/register" className="nav-link">
+                    <NavLink to="api/auth/register" className="nav-link">
                       {t("register")}
                     </NavLink>
                   </li>

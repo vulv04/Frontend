@@ -64,12 +64,18 @@ const LoginPage = () => {
 
         // Gộp user + token để component khác dùng
         if (response.data.accessToken) {
-          localStorage.setItem("user", JSON.stringify({
-            _id: response.data.user._id,
-            username: response.data.username,
-            token: response.data.accessToken
-          }));
+          const userToStore = {
+            id: response.data.user.id,
+            username: response.data.user.username,
+            email: response.data.user.email,
+            role: response.data.user.role,
+            token: response.data.accessToken,
+          };
+          console.log("💾 Saving user to localStorage:", userToStore);
+          localStorage.setItem("user", JSON.stringify(userToStore));
         }
+        
+        
         toast.success("Login successful!");
         navigate("/");
       } else {

@@ -1,7 +1,7 @@
 import api from ".";
 
 const API = api.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://backend-b7ar.onrender.com",
 });
 
 export const createComment = (data, token) => {
@@ -12,7 +12,6 @@ export const createComment = (data, token) => {
     },
   });
 };
-  
 
 export const getCommentsByProductId = (productId) =>
   api.get(`/api/comments/${productId}`);
