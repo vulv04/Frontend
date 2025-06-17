@@ -106,7 +106,7 @@ const Header = () => {
                     <li>
                       <NavLink
                         className="dropdown-item"
-                        to={`/me/profile/${user.id}`}
+                        to={`/me/profile/${user._id}`}
                       >
                         {t("profile")}
                       </NavLink>

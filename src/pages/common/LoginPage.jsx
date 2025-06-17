@@ -65,8 +65,7 @@ const LoginPage = () => {
         // Gộp user + token để component khác dùng
         if (response.data.accessToken) {
           const userToStore = {
-            id: response.data.user.id,
-            username: response.data.user.username,
+            _id: response.data.user._id,
             email: response.data.user.email,
             role: response.data.user.role,
             token: response.data.accessToken,

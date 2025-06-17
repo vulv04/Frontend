@@ -5,7 +5,7 @@ const ProfilePage = () => {
   const { id } = useParams(); // ✅ Dùng đúng tên param
   const user = JSON.parse(localStorage.getItem("user"));
 
-  if (!user || !user.id) {
+  if (!user || !user._id) {
     return (
       <div className="container mt-5">
         <div className="alert alert-warning text-center">
@@ -15,7 +15,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (user.id.toString() !== id.toString()) {
+  if (user._id.toString() !== id.toString()) {
     return <Navigate to="/" replace />;
   }
 
@@ -33,7 +33,7 @@ const ProfilePage = () => {
           />
           <h4 className="card-title">{user.username}</h4>
           <p className="card-text">Email: {user.email}</p>
-          <p className="card-text text-muted">User ID: {user.id}</p>
+          <p className="card-text text-muted">User ID: {user._id}</p>
         </div>
       </div>
     </div>
