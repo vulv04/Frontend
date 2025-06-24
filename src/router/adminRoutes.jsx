@@ -1,5 +1,4 @@
 import React from "react";
-import DashboardPage from "../pages/admin/DashboardPage";
 import SettingsPage from "../pages/admin/SettingsPage";
 import ProfilePage from "../pages/admin/ProfilePage";
 import ProductListPage from "../pages/admin/ProductListPage";
@@ -11,8 +10,9 @@ import OrderFormPage from "../pages/admin/OrderFormPage";
 import OrderDetailPage from "../pages/admin/OrderDetailPage";
 import ProfileFormPage from "../pages/admin/ProfileFormPage";
 import BlogFormPage from "../pages/admin/BlogFormPage";
+import DashBoardPage from "../pages/admin/DashBoardPage";
 export const adminRoutes = [
-  { index: true, element: <DashboardPage /> },
+  { index: true, element: <DashBoardPage /> },
   { path: "settings", element: <SettingsPage /> },
   { path: "me/profile", element: <ProfilePage /> }, // User profile page
 
