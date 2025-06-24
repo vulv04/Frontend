@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import FooterAdmin from "../components/FooterAdmin";
 import HeaderAdmin from "../components/HeaderAdmin";
 import SideBarAdmin from "../components/SideBarAdmin";
+import Breadcrumb from "../components/Breadcrumb";
 
 const LayoutWrapper = styled.div`
   display: flex;
@@ -32,7 +33,7 @@ const Body = styled.div`
 `;
 
 const SideBarWrapper = styled.aside`
-  width: ${(props) => (props.collapsed ? "60px" : "240px")};
+  width: ${(props) => (props.collapsed ? "100px" : "240px")};
   transition: width 0.3s;
   background-color: #222;
   color: white;
@@ -52,8 +53,6 @@ const Content = styled.main`
   overflow-y: auto;
   width: calc(100% - ${(props) => (props.collapsed ? "60px" : "240px")});
 `;
-
-
 
 const FooterWrapper = styled.footer`
   height: 40px;
@@ -86,6 +85,7 @@ const AdminLayout = () => {
           <SideBarAdmin collapsed={collapsed} onToggle={handleToggleSidebar} />
         </SideBarWrapper>
         <Content collapsed={collapsed}>
+          <Breadcrumb />
           <Outlet />
         </Content>
       </Body>

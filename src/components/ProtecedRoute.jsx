@@ -11,7 +11,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
 
   if (!user) {
     // Chưa đăng nhập
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/api/auth/login" replace />;
   }
 
   // Kiểm tra role hoặc id tùy bạn

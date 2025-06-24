@@ -1,19 +1,32 @@
 import React, { useEffect, useState } from "react";
-import Banner from "../../components/Banner";
+// import Banner from "../../components/Banner";
 import ServiceFeatures from "../../components/ServiceFeatures";
 import SearchBarWithTags from "../../components/SearchBarWithTags";
 import FeaturedProducts from "./FeaturedProducts";
 import RecommendedProducts from "./RecommendedProducts";
 import SpecialCollections from "./SpecialCollections";
 import { getProducts } from "../../api/productApi";
-import { cartApi } from "../../api/cartApi";
+import { useTranslation } from "react-i18next";
+import PopupAd from "../../components/PopupAd";
+import FloatingNotification from "../../components/FloatingNotification";
+import FloatingButtons from "../../components/FloatingButtons";
 import ProductCard from "../../components/ProductCard";
-import { Link } from "react-router-dom";
+import Banner from "../../components/Banner";
+import { useNavigate } from "react-router-dom";
+import QuickViewModal from "../../components/QuickViewModal";
+
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { t } = useTranslation();
+  const nav = useNavigate();
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
+  const handleQuickView = (product) => {
+    setQuickViewProduct(product);
+  };
+  
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
@@ -36,15 +49,6 @@ const HomePage = () => {
 
     fetchProducts();
   }, []);
-  const handleAddToCart = async () => {
-    try {
-      const res = await cartApi({ productId: products._id });
-      console.log("Đã thêm vào giỏ:", res.data);
-      // dispatch hoặc cập nhật UI nếu cần
-    } catch (err) {
-      console.error("Lỗi khi thêm vào giỏ:", err);
-    }
-  };
   const indexOfLast = currentPage * productsPerPage;
   const indexOfFirst = indexOfLast - productsPerPage;
   const currentItems = products.slice(indexOfFirst, indexOfLast);
@@ -62,27 +66,24 @@ const HomePage = () => {
       <ServiceFeatures />
       <SearchBarWithTags />
       <section className="container my-5">
-        <h1 className="mb-4 text-center">
-          Chào mừng đến với Cửa hàng của chúng tôi
-        </h1>
-        <p className="text-center lead mb-5">
-          Khám phá bộ sưu tập sản phẩm chất lượng cao được chúng tôi tuyển chọn
-          kỹ lưỡng dành riêng cho bạn.
-        </p>
+        <h1 className="mb-4 text-center">{t("welcome_title")}</h1>
+        <p className="text-center lead mb-5">{t("welcome_subtitle")}</p>
 
         {loading && (
           <div className="text-center my-5">
             <div className="spinner-border" role="status" />
-            <p>Loading products...</p>
+            <p>{t("loading")}</p>
           </div>
         )}
 
         {error && <p className="text-danger text-center">{error}</p>}
 
         {!loading && !error && products.length === 0 && (
-          <p className="text-center">No products available.</p>
+          <p className="text-center">{t("no_products")}</p>
         )}
-
+        <FloatingNotification />
+        <PopupAd />
+        <FloatingButtons />
         <div className="row">
           {!loading &&
             !error &&
@@ -98,30 +99,33 @@ const HomePage = () => {
               } = product;
 
               return (
-                <div key={id || _id || index} className="col-md-4 mb-4">
-                  <Link
-                    to={`/products/${_id}`}
-                    className="text-decoration-none text-dark"
-                  >
-                    <ProductCard
-                      title={title}
-                      description={description}
-                      image={thumbnail || images?.[0]}
-                      price={price}
-                      oldPrice={product.oldPrice}
-                      discountPercent={product.discountPercent}
-                      gender={product.gender}
-                      size={product.size}
-                      label={product.label}
-                      promo={product.promo}
-                      variants={product.colors}
-                      onAddToCart={() => handleAddToCart(_id || id)}
-                    />
-                  </Link>
+                <div
+                  key={id || _id || index}
+                  className="col-6 col-sm-4 col-md-3 col-lg-2-4 mb-4"
+                >
+                  <ProductCard
+                    title={title}
+                    image={thumbnail || images?.[0]}
+                    price={price}
+                    gender={product.gender}
+                    size={product.size}
+                    label={product.label}
+                    promo={product.promo}
+                    variants={product.colors}
+                    sold={product.sold || 0}
+                    onViewDetails={() => nav(`/products/${product._id}`)}
+                    
+                    onQuickView={(p) => handleQuickView(p)}
+                  />
                 </div>
               );
             })}
         </div>
+        <QuickViewModal
+          show={!!quickViewProduct}
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
 
         {/* Pagination */}
         {!loading && !error && totalPages > 1 && (
@@ -132,7 +136,7 @@ const HomePage = () => {
                 onClick={() => handlePageChange(currentPage - 1)}
                 style={{ cursor: "pointer" }}
               >
-                <span className="page-link">Previous</span>
+                <span className="page-link">{t("previous")}</span>
               </li>
               {[...Array(totalPages)].map((_, i) => (
                 <li
@@ -153,7 +157,7 @@ const HomePage = () => {
                 onClick={() => handlePageChange(currentPage + 1)}
                 style={{ cursor: "pointer" }}
               >
-                <span className="page-link">Next</span>
+                <span className="page-link">{t("next")}</span>
               </li>
             </ul>
           </nav>

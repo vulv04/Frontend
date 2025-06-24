@@ -33,7 +33,6 @@ const ProfilePage = () => {
           />
           <h4 className="card-title">{user.username}</h4>
           <p className="card-text">Email: {user.email}</p>
-          <p className="card-text text-muted">User ID: {user._id}</p>
         </div>
       </div>
     </div>

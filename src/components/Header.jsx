@@ -1,15 +1,175 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import ToggleTheme from "./ToggleTheme";
 import { useLanguage } from "../contexts/LanguageContext";
 import translations from "../i18n/lang";
+import styled from "@emotion/styled";
+import { NavLink as RouterNavLink } from "react-router-dom";
+import {
+  FiSearch,
+  FiUser,
+  FiHeart,
+  FiBell,
+  FiShoppingBag,
+} from "react-icons/fi";
+const StyledNavLink = styled(RouterNavLink)`
+  position: relative;
+  display: inline-block;
+  padding: 8px 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    width: 0;
+    height: 2px;
+    background-color: #000;
+    transition: width 0.3s ease;
+  }
+
+  &:hover::after {
+    width: 80%;
+  }
+
+  &:hover {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+  }
+
+  &.active {
+    font-weight: bold;
+    background-color: #e9ecef;
+    border-radius: 5px;
+  }
+`;
+const IconGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+`;
+
+const IconWrapper = styled.div`
+  position: relative;
+  cursor: pointer;
+
+  svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+  }
+`;
+
+const Badge = styled.span`
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #0056ff;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 50%;
+  border: 2px solid white;
+`;
+const DropdownWrapper = styled.div`
+  position: relative;
+  &:hover .dropdown-content {
+    display: block;
+  }
+`;
+
+const DropdownContent = styled.ul`
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  li {
+    padding: 10px 15px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: #f1f1f1;
+    }
+  }
+`;
+
+const SearchBox = styled.div`
+  position: absolute;
+  top: 35px;
+  right: 0;
+  background-color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-in-out;
+
+  input {
+    width: 200px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const SearchWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+
+  &:hover .search-box {
+    display: block;
+  }
+`;
+
 
 const Header = () => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage(); // 👈 Lấy thêm setLang
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchRef = useRef();
+
   const t = (key) => translations[lang][key] || key; // 👈 Tạo hàm t()
   const user = JSON.parse(localStorage.getItem("user"));
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearch(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
@@ -47,125 +207,108 @@ const Header = () => {
           </button>
 
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <NavLink to="/" className="nav-link">
-                  {t("home")}
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/shop" className="nav-link">
-                  {t("shop")}
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/about" className="nav-link">
-                  {t("about")}
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/blogs" className="nav-link">
-                  {t("blog")}
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/contact" className="nav-link">
-                  {t("contact")}
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink to="/tin-tuc" className="nav-link">
-                  {t("news")}
-                </NavLink>
-              </li>
-
-              {user ? (
-                <li className="nav-item dropdown">
-                  <button
-                    className="nav-link dropdown-toggle d-flex align-items-center btn btn-link"
-                    id="navbarDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    style={{ textDecoration: "none", color: "inherit" }}
-                    type="button"
-                  >
-                    <img
-                      src={`https://ui-avatars.com/api/?name=${
-                        user.username || user.email || "User"
-                      }`}
-                      alt="avatar"
-                      className="rounded-circle me-2"
-                      style={{ width: "30px", height: "30px" }}
-                    />
-                  </button>
-
-                  <ul
-                    className="dropdown-menu dropdown-menu-end"
-                    aria-labelledby="navbarDropdown"
-                  >
-                    <li>
-                      <NavLink
-                        className="dropdown-item"
-                        to={`/me/profile/${user._id}`}
-                      >
-                        {t("profile")}
-                      </NavLink>
-                    </li>
-                    <li>
-                      <a
-                        href="#logout"
-                        className="dropdown-item"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleLogout();
-                        }}
-                      >
-                        {t("logout")}
-                      </a>
-                    </li>
-                  </ul>
+            <div className="d-flex align-items-center justify-content-between w-100">
+              {/* Menu giữa */}
+              <ul className="navbar-nav mx-auto d-flex gap-2">
+                <li className="nav-item">
+                  <StyledNavLink to="/" className="nav-link">
+                    {t("home")}
+                  </StyledNavLink>
                 </li>
-              ) : (
-                <>
-                  <li className="nav-item">
-                    <NavLink to="api/auth/register" className="nav-link">
-                      {t("register")}
-                    </NavLink>
-                  </li>
-                </>
-              )}
-              <li className="nav-item">
-                <div className="nav-link">
-                  <ToggleTheme />
-                </div>
-              </li>
-              <li className="nav-item dropdown">
-                <button
-                  className="btn btn-sn btn-outline-dark dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  {lang.toUpperCase()}
-                </button>
-                <ul className="dropdown-menu">
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={() => setLang("vi")}
-                    >
-                      Tiếng Việt
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={() => setLang("en")}
-                    >
-                      English
-                    </button>
-                  </li>
-                </ul>
-              </li>
-            </ul>
+                <li className="nav-item">
+                  <StyledNavLink to="/shop" className="nav-link">
+                    {t("shop")}
+                  </StyledNavLink>
+                </li>
+                <li className="nav-item">
+                  <StyledNavLink to="/about" className="nav-link">
+                    {t("about")}
+                  </StyledNavLink>
+                </li>
+                <li className="nav-item">
+                  <StyledNavLink to="/blogs" className="nav-link">
+                    {t("blog")}
+                  </StyledNavLink>
+                </li>
+                <li className="nav-item">
+                  <StyledNavLink to="/contact" className="nav-link">
+                    {t("contact")}
+                  </StyledNavLink>
+                </li>
+                <li className="nav-item">
+                  <StyledNavLink to="/tin-tuc" className="nav-link">
+                    {t("news")}
+                  </StyledNavLink>
+                </li>
+              </ul>
+
+              {/* Icon phải */}
+              <IconGroup>
+                <DropdownWrapper ref={searchRef}>
+                  <IconWrapper onClick={() => setShowSearch((prev) => !prev)}>
+                    <FiSearch />
+                  </IconWrapper>
+                  {showSearch && (
+                    <SearchBox>
+                      <input
+                        type="text"
+                        placeholder={t("search_placeholder") || "Search..."}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </SearchBox>
+                  )}
+                </DropdownWrapper>
+
+                <DropdownWrapper>
+                  <IconWrapper>
+                    {user ? (
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${
+                          user.username || user.email || "User"
+                        }`}
+                        alt="avatar"
+                        className="rounded-circle"
+                        style={{ width: "30px", height: "30px" }}
+                      />
+                    ) : (
+                      <FiUser />
+                    )}
+                  </IconWrapper>
+                  <DropdownContent className="dropdown-content">
+                    {user ? (
+                      <>
+                        <li onClick={() => navigate(`/me/profile/${user._id}`)}>
+                          {t("profile")}
+                        </li>
+                        <li onClick={handleLogout}>{t("logout")}</li>
+                      </>
+                    ) : (
+                      <>
+                        <li onClick={() => navigate("/api/auth/login")}>
+                          {t("login")}
+                        </li>
+                        <li onClick={() => navigate("/api/auth/register")}>
+                          {t("register")}
+                        </li>
+                      </>
+                    )}
+                  </DropdownContent>
+                </DropdownWrapper>
+                <IconWrapper>
+                  <FiHeart />
+                  <Badge>0</Badge>
+                </IconWrapper>
+                <IconWrapper>
+                  <FiBell />
+                  <Badge>3</Badge>
+                </IconWrapper>
+                <IconWrapper onClick={() => navigate("/cart")}>
+                  <FiShoppingBag />
+                  <Badge>0</Badge>
+                </IconWrapper>
+              </IconGroup>
+            </div>
           </div>
         </div>
       </nav>

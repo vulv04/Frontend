@@ -1,0 +1,35 @@
+{
+  "welcome_title": "Welcome to Our Store",
+  "welcome_subtitle": "Explore our carefully curated collection of high-quality products tailored just for you.",
+  "loading": "Loading products...",
+  "no_products": "No products available.",
+  "previous": "Previous",
+  "next": "Next",
+  "product_details": "Product details",
+  "footer": {
+    "information": "INFORMATION",
+    "description": "We always value and look forward to receiving feedback from customers to improve our service and product experience.",
+    "policy": "POLICIES",
+    "member_policy": "Membership Policy",
+    "shipping_policy": "Shipping Policy",
+    "customer_service": "Customer Care",
+    "payment_methods": "Payment Methods",
+    "return_policy": "Return / Warranty Policy",
+    "guide": "GUIDES",
+    "denny_member": "Denny Member",
+    "easy_buy": "Easy Purchase",
+    "franchise": "Franchise Partnership",
+    "online_guide": "Online Shopping Guide",
+    "check_member": "Membership Status Guide",
+    "newsletter": "SUBSCRIBE TO NEWSLETTER",
+    "enter_email": "Enter your email address",
+    "payment_form": "Payment Methods:",
+    "platform_links": "Platform Links:",
+    "follow_us": "Follow us:"
+  },
+  "banner": {
+    "line1": "Free shipping on orders from 500K • Use code HELLO to get 15% off orders from 699K • 30-day return policy",
+    "line2": "Daily hot deals • Limited time offers • Don't miss out • Shop now at Vukibo.vn",
+    "line3": "Follow us on Facebook, Instagram, Youtube for deals • Join our membership for more discounts"
+  }
+}

@@ -9,7 +9,6 @@ const AutoScrollToTop = () => {
       top: 0,
       behavior: "smooth",
     });
-    console.log(path);
   },[path])
   return null
 };

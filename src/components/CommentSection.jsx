@@ -6,7 +6,6 @@ const CommentSection = ({ productId }) => {
   const [form, setForm] = useState({ content: "" });
 
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log("👤 USER localStorage:", user);
 
 
   const fetchComments = async () => {
@@ -36,7 +35,7 @@ const CommentSection = ({ productId }) => {
         await createComment(
           {
             productId,
-            userId: user.id,
+            userId: user._id,
             author: "Anonymous",
             content: form.content,
           },

@@ -9,6 +9,7 @@ import {
   FaInstagram,
   FaPinterest,
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 const FooterST = styled.footer`
   background-color: #000;
@@ -92,16 +93,14 @@ const BottomText = styled.div`
 `;
 
 const Footer = () => {
+  const { t } = useTranslation();
+
   return (
     <FooterST>
       <Container>
         <Column>
-          <Title>THÔNG TIN</Title>
-          <Text>
-            Chúng tôi luôn trân trọng và mong đợi nhận được mọi ý kiến đóng góp
-            từ khách hàng để có thể nâng cấp trải nghiệm dịch vụ và sản phẩm tốt
-            hơn nữa.
-          </Text>
+          <Title>{t("footer.information")}</Title>
+          <Text>{t("footer.description")}</Text>
           <InfoItem>
             <FaMapMarkerAlt />
             So 4 Tan My, MY Dinh 2, Nam Tu Liem, Ha Noi
@@ -114,7 +113,7 @@ const Footer = () => {
             <FaEnvelope />
             support@vukibo.vn
           </InfoItem>
-          <Text style={{ marginTop: "12px" }}>Follow chúng tôi:</Text>
+          <Text style={{ marginTop: "12px" }}>{t("footer.follow_us")}</Text>
           <IconRow>
             <a href="#">
               <FaYoutube />
@@ -132,46 +131,49 @@ const Footer = () => {
         </Column>
 
         <Column>
-          <Title>CHÍNH SÁCH</Title>
-          <Link href="#">Chính sách thành viên</Link>
-          <Link href="#">Chính sách vận chuyển</Link>
-          <Link href="#">Chăm sóc khách hàng</Link>
-          <Link href="#">Phương thức thanh toán</Link>
-          <Link href="#">Chính sách đổi trả / bảo hành</Link>
+          <Title>{t("footer.policy")}</Title>
+          <Link href="#">{t("footer.member_policy")}</Link>
+          <Link href="#">{t("footer.shipping_policy")}</Link>
+          <Link href="#">{t("footer.customer_service")}</Link>
+          <Link href="#">{t("footer.payment_methods")}</Link>
+          <Link href="#">{t("footer.return_policy")}</Link>
         </Column>
 
         <Column>
-          <Title>HƯỚNG DẪN</Title>
-          <Link href="#">Denny Member</Link>
-          <Link href="#">Mua hàng dễ dàng</Link>
-          <Link href="#">Hợp tác nhượng quyền</Link>
-          <Link href="#">Hướng dẫn mua hàng online</Link>
-          <Link href="#">Hướng dẫn kiểm tra hạng thẻ thành viên</Link>
+          <Title>{t("footer.guide")}</Title>
+          <Link href="#">{t("footer.denny_member")}</Link>
+          <Link href="#">{t("footer.easy_buy")}</Link>
+          <Link href="#">{t("footer.franchise")}</Link>
+          <Link href="#">{t("footer.online_guide")}</Link>
+          <Link href="#">{t("footer.check_member")}</Link>
         </Column>
 
         <Column>
-          <Title>ĐĂNG KÝ NHẬN TIN</Title>
-          <EmailInput type="email" placeholder="Nhập địa chỉ email" />
-          <Text>Hình thức thanh toán:</Text>
+          <Title>{t("footer.newsletter")}</Title>
+          <EmailInput type="email" placeholder={t("footer.enter_email")} />
+          <Text>{t("footer.payment_form")}</Text>
           <img
             src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/payment_1.png?1738662131654"
             alt="payment"
             style={{ margin: "8px 0" }}
           />
-          <Text>Liên kết sàn:</Text>
+          <Text>{t("footer.platform_links")}</Text>
           <img
             src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/shopee.png?1738662131654"
-            alt="lienket"
+            alt="shopee"
           />
           <img
             src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/laz.png?1738662131654"
-            alt="lienket"
+            alt="lazada"
           />
           <img
             src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/tiki.png?1738662131654"
-            alt="lienket"
+            alt="tiki"
           />
-          <img src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/sendo.png?1738662131654" />
+          <img
+            src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/sendo.png?1738662131654"
+            alt="sendo"
+          />
         </Column>
       </Container>
       <BottomText>

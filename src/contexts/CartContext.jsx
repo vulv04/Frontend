@@ -1,32 +1,44 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState } from "react";
 
 const CartContext = createContext();
 
-const cartReducer = (state, action) => {
-  switch (action.type) {
-    case "SET_CART":
-      return action.payload;
-    case "ADD_ITEM":
-      return [...state, action.payload];
-    case "REMOVE_ITEM":
-      return state.filter((item) => item._id !== action.payload);
-    default:
-      return state;
-  }
-};
-
 export const CartProvider = ({ children }) => {
-  const [cart, dispatch] = useReducer(cartReducer, []);
+  const [cartItems, setCartItems] = useState([]);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/cart").then((res) => {
-      dispatch({ type: "SET_CART", payload: res.data });
+  const addToCart = (item) => {
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i._id === item._id);
+      if (existing) {
+        return prev.map((i) =>
+          i._id === item._id
+            ? { ...i, quantity: i.quantity + item.quantity }
+            : i
+        );
+      }
+      return [...prev, { ...item }];
     });
-  }, []);
+  };
+
+  const removeFromCart = (id) => {
+    setCartItems((prev) => prev.filter((item) => item._id !== id));
+  };
+
+  const updateQuantity = (id, quantity) => {
+    setCartItems((prev) =>
+      prev.map((item) => (item._id === id ? { ...item, quantity } : item))
+    );
+  };
 
   return (
-    <CartContext.Provider value={{ cart, dispatch }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        setCartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

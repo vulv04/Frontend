@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "bootstrap-icons/font/bootstrap-icons.css";
+// import "bootstrap-icons/font/bootstrap-icons.css";
 
 const tags = [
   "Áo Thun",

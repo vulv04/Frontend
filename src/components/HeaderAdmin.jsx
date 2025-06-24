@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { FiLogOut } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { FiLogOut, FiBell, FiSettings, FiHome } from "react-icons/fi";
+import { NavLink, useNavigate } from "react-router-dom";
 
 // Styled components
 const HeaderWrapper = styled.header`
-  background-color: #282c34;
-  color: white;
-  padding: 16px 24px;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 0 24px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const LeftSection = styled.div`
@@ -18,32 +20,59 @@ const LeftSection = styled.div`
   align-items: center;
 `;
 
-const Avatar = styled.img`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 12px;
+const Logo = styled.img`
+  height: 36px;
 `;
 
-const Username = styled.h2`
-  margin: 0;
-  font-size: 18px;
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const Avatar = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+`;
+
+const Username = styled.span`
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const LogoutButton = styled.button`
   background: none;
-  border: none;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+  color: #000000;
 
   &:hover {
-    color: #e74c3c;
+    background-color: #f2f2f2;
   }
 `;
+const IconButton = styled(NavLink)`
+  color: #000;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    background-color: #f2f2f2;
+  }
+`;
+
 
 const HeaderAdmin = () => {
   const [user, setUser] = useState(null);
@@ -53,19 +82,19 @@ const HeaderAdmin = () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       if (!storedUser || storedUser.role?.toLowerCase() !== "admin") {
-        navigate("/auth/login");
+        navigate("/api/auth/login");
       } else {
         setUser(storedUser);
       }
     } catch (err) {
-      navigate("/auth/login");
+      navigate("/api/auth/login");
     }
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
-    navigate("/auth/login");
+    navigate("/api/auth/login");
   };
 
   if (!user) return null;
@@ -73,16 +102,35 @@ const HeaderAdmin = () => {
   return (
     <HeaderWrapper>
       <LeftSection>
+        <NavLink to="/admin">
+          <Logo
+            src="https://bizweb.dktcdn.net/100/491/897/themes/915864/assets/logo.png?1738662131654"
+            alt="Logo"
+          />
+        </NavLink>
+      </LeftSection>
+      <RightSection>
+        <IconButton to="/admin" title="Trang quản trị">
+          <FiHome />
+        </IconButton>
+        <IconButton as="div" title="Thông báo">
+          <FiBell />
+        </IconButton>
+        <IconButton as="div" title="Cài đặt">
+          <FiSettings />
+        </IconButton>
+
         <Avatar
           src={`https://ui-avatars.com/api/?name=${user.username}`}
           alt="avatar"
         />
         <Username>Xin chào Admin, {user.username}</Username>
-      </LeftSection>
-      <LogoutButton onClick={handleLogout}>
-        <FiLogOut />
-        Logout
-      </LogoutButton>
+
+        <LogoutButton onClick={handleLogout}>
+          <FiLogOut />
+          Logout
+        </LogoutButton>
+      </RightSection>
     </HeaderWrapper>
   );
 };
