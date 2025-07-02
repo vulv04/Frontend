@@ -43,7 +43,7 @@ export const clientRoutes = [
   // blog
   { path: "blogs", element: <BlogListPage /> },
   { path: "blogs/:slug", element: <BlogDetailPage /> },
-  { path: "tin-tuc", element: <NewsPage /> },
+  { path: "news", element: <NewsPage /> },
 
   // user
   { path: "/me/profile/:id", element: <ProfilePage /> },

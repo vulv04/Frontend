@@ -27,8 +27,16 @@ const FloatingNotification = () => {
         </div>
       )}
 
-      <div className="bell-icon" onClick={() => setVisible(!visible)}>
-        <FaBell />
+      <div
+        className="bell-wrapper"
+        onClick={() => setVisible(!visible)}
+        title="Thông báo"
+      >
+        <span className="ripple"></span>
+        <span className="ripple ripple-delay"></span>
+        <div className="bell-icon">
+          <FaBell />
+        </div>
       </div>
     </div>
   );

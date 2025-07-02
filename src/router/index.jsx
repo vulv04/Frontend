@@ -7,6 +7,7 @@ import { adminRoutes } from "./adminRoutes";
 import ProtectedRoute from "../components/ProtecedRoute";
 import LoginPage from "../pages/common/LoginPage";
 import RegisterPage from "../pages/common/RegisterPage";
+import VerifyEmail from "../pages/common/VerifyEmail";
 
 const router = createBrowserRouter([
   // * Layout Client
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
   },
 
   // * Layout Empty
+  { path:"/verify-email", element:<VerifyEmail /> },
   { path: "/api/auth/login", element: <LoginPage /> },
   { path: "/api/auth/register", element: <RegisterPage /> },
   { path: "*", element: <NotFoundPage /> },

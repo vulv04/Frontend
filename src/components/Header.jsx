@@ -12,6 +12,7 @@ import {
   FiBell,
   FiShoppingBag,
 } from "react-icons/fi";
+import { message } from "antd";
 const StyledNavLink = styled(RouterNavLink)`
   position: relative;
   display: inline-block;
@@ -173,6 +174,7 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
+    message.success("Đăng xuất thành công!");
     navigate("api/auth/login");
   };
 
@@ -236,7 +238,7 @@ const Header = () => {
                   </StyledNavLink>
                 </li>
                 <li className="nav-item">
-                  <StyledNavLink to="/tin-tuc" className="nav-link">
+                  <StyledNavLink to="/news" className="nav-link">
                     {t("news")}
                   </StyledNavLink>
                 </li>

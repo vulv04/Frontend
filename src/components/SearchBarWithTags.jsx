@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 // import "bootstrap-icons/font/bootstrap-icons.css";
-
+import { BiSearch } from "react-icons/bi";
 const tags = [
   "Áo Thun",
   "Quần short",
@@ -28,7 +28,7 @@ const SearchBarWithTags = () => {
         {/* Search Box */}
         <div className="col-md-6 mb-3">
           <h4 className="fw-bold mb-3">MẶC GÌ HÔM NAY?</h4>
-          <div className="input-group">
+          <div className="input-group ">
             <input
               type="text"
               className="form-control p-3"
@@ -37,7 +37,7 @@ const SearchBarWithTags = () => {
               onChange={handleSearchChange}
             />
             <span className="input-group-text bg-white">
-              <i className="bi bi-search"></i>
+              <BiSearch />
             </span>
           </div>
         </div>

@@ -5,9 +5,9 @@ export const loginSchema = z.object({
 });
 export const registerSchema = z
   .object({
-    username: z.string().min(3, "Username phải có ít nhất 3 ký tự"),
+    fullname: z.string().min(3, "Họ và tên phải có ít nhất 3 ký tự"),
     email: z.string().email("Email không hợp lệ"),
-    password: z.string().min(6, "Password phải có ít nhất 6 ký tự"),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

@@ -32,12 +32,16 @@ const FloatingButtons = () => {
         </button>
       )}
 
-      <button className="circle-btn" title="Liên hệ">
-        <FaPhone />
-      </button>
+      <div className="phone-wrapper" title="Liên hệ">
+        <span className="ripple"></span>
+        <span className="ripple ripple-delay"></span>
+        <button className="phone-shake-btn circle-btn">
+          <FaPhone />
+        </button>
+      </div>
 
       <a
-        href="https://m.me/yourpage" // 🔁 Thay link Messenger thực tế
+        href="https://m.me/yourpage"
         className="circle-btn"
         title="Messenger"
         target="_blank"

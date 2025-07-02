@@ -10,6 +10,7 @@ const ProfilePage = () => {
       <div className="container mt-5">
         <div className="alert alert-warning text-center">
           You need to login to view this profile.
+          
         </div>
       </div>
     );
@@ -31,7 +32,9 @@ const ProfilePage = () => {
             className="rounded-circle mb-3"
             style={{ width: "100px", height: "100px" }}
           />
-          <h4 className="card-title">{user.username}</h4>
+          <h3 className="card-title">{user.username}</h3>
+          <p className="card-text">Full Name: {user.fullname}</p>
+          <p className="card-text">Role: {user.role || "User"}</p>
           <p className="card-text">Email: {user.email}</p>
         </div>
       </div>
