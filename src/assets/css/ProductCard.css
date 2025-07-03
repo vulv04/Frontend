@@ -1,55 +1,46 @@
 .product-card {
-    background: #fff;
-    transition: transform 0.2s ease;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
-  }
-  
-  .product-card:hover {
-    transform: translateY(-3px);
-  }
-  
-  .product-image-wrapper {
-    overflow: hidden;
-    position: relative;
-  }
-  
-/* Vị trí 3 icon khi hover */
-.center-icons {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    gap: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 2;
-  }
-  
-  .product-image-wrapper:hover .center-icons {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
-  }
-  
-  /* Icon tròn */
-  .circle-icon {
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 16px;
-    padding: 10px;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.3s;
-  }
-  
-  .circle-icon:hover {
-    transform: scale(1.15);
-    background-color: #f0f0f0;
-  }
-  
-  
-  .bg-purple {
-    background-color: #8000ff;
-  }
-  
+  transition: all 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.product-image {
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.icons-hover {
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover .icons-hover {
+  opacity: 1;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  background-color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.icon-btn:hover {
+  background-color: #f0f0f0;
+}

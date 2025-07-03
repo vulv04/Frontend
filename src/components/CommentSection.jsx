@@ -36,7 +36,7 @@ const CommentSection = ({ productId }) => {
           {
             productId,
             userId: user._id,
-            author: "Anonymous",
+            author: user.fullname,
             content: form.content,
           },
           user.token // thêm token nếu cần xác thực

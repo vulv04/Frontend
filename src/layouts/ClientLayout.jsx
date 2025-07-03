@@ -6,6 +6,7 @@ import AutoScrollToTop from "../contexts/AutoScrollToTop";
 import { useLanguage } from "../contexts/LanguageContext";
 import FloatingLangMenu from "../components/FloatingLangMenu";
 import MarqueeBanner from "../components/MarqueeBanner";
+import FloatingButtons from "../components/FloatingButtons";
 
 const ClientLayout = () => {
   const { lang, setLang } = useLanguage();
@@ -17,6 +18,7 @@ const ClientLayout = () => {
       <main>
         <Outlet />
       </main>
+      <FloatingButtons />
       <FloatingLangMenu lang={lang} setLang={setLang} />
       <Footer />
     </>

@@ -1,75 +1,92 @@
 /* Đảm bảo bell và box nằm chung một khối cha */
 .floating-wrapper {
-    position: fixed;
-    bottom: 80px;
-    left: 20px;
-    z-index: 1000;
-  }
-  
-  .floating-box {
-    background-color: #0051d2;
-    color: white;
-    padding: 16px;
-    width: 270px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    font-family: sans-serif;
-    position: relative;
-    margin-bottom: 10px;
-  }
-  
-  .floating-box h4 {
-    margin-top: 0;
-    font-size: 16px;
-    font-weight: bold;
-  }
-  
-  .floating-box ul {
-    padding-left: 16px;
-    margin: 8px 0;
-  }
-  
-  .floating-box li {
-    margin-bottom: 6px;
-  }
-  
-  .floating-box .note {
-    font-size: 12px;
-    margin-top: 10px;
-    font-style: italic;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: 6px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 20px;
-    color: white;
-    cursor: pointer;
-  }
-  
-  .bell-icon {
-    background-color: #0051d2;
-    color: white;
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    cursor: pointer;
-  }
-  /* Lắc chuông */
+  position: fixed;
+  bottom: 80px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.floating-box {
+  width: 280px;
+  background-color: #3535e9;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  margin-bottom: 12px;
+  animation: fadeInUp 0.4s ease;
+  position: relative;
+}
+
+.floating-box h4 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.floating-box ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 12px;
+}
+
+.floating-box li {
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.floating-box .note {
+  font-size: 12px;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.close-btn:hover {
+  color: #ffffff;
+}
+.bell-icon {
+  background-color: #0051d2;
+  color: white;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  cursor: pointer;
+}
+/* Lắc chuông */
 @keyframes bell-shake {
-  0% { transform: rotate(0deg); }
-  20% { transform: rotate(-10deg); }
-  40% { transform: rotate(10deg); }
-  60% { transform: rotate(-6deg); }
-  80% { transform: rotate(6deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  40% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(-6deg);
+  }
+  80% {
+    transform: rotate(6deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 /* Sóng âm thanh */

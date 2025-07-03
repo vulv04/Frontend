@@ -9,7 +9,6 @@ import { getProducts } from "../../api/productApi";
 import { useTranslation } from "react-i18next";
 import PopupAd from "../../components/PopupAd";
 import FloatingNotification from "../../components/FloatingNotification";
-import FloatingButtons from "../../components/FloatingButtons";
 import ProductCard from "../../components/ProductCard";
 import Banner from "../../components/Banner";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +25,7 @@ const HomePage = () => {
   const handleQuickView = (product) => {
     setQuickViewProduct(product);
   };
-  
+
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
@@ -83,7 +82,6 @@ const HomePage = () => {
         )}
         <FloatingNotification />
         <PopupAd />
-        <FloatingButtons />
         <div className="row">
           {!loading &&
             !error &&
@@ -114,8 +112,8 @@ const HomePage = () => {
                     variants={product.colors}
                     sold={product.sold || 0}
                     onViewDetails={() => nav(`/products/${product._id}`)}
-                    
                     onQuickView={(p) => handleQuickView(p)}
+                    onClickDetail={() => nav(`/products/${product._id}`)}
                   />
                 </div>
               );

@@ -33,8 +33,20 @@ const ProductDetailPage = () => {
     oldPrice,
     label,
     promo,
-    variants = [],
-    sizes = [],
+    variants = [
+      "#000000",
+      "#FFFFFF",
+      "#FF0000",
+      "#00FF00",
+      "#0000FF",
+    ],
+    sizes = [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+    ],
     promoCodes = ["HELLO", "FREESHIP"],
   } = product;
 

@@ -35,40 +35,55 @@ const ProductCard = ({
 
   return (
     <div
-      className="product-card border rounded position-relative small-card p-2"
+      className="product-card border rounded-4 position-relative shadow-sm overflow-hidden"
       onClick={onClickDetail}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", backgroundColor: "#fff" }}
     >
       {/* Hình ảnh sản phẩm */}
       <div className="product-image-wrapper position-relative">
-        <div className="badge-wrapper position-absolute top-0 start-0 w-100 d-flex justify-content-between p-2">
-          <span className="badge bg-info text-white">FREESHIP</span>
-          <span className="badge bg-danger">📺</span>
+        <img
+          src={image}
+          alt={title}
+          className="img-fluid w-100 rounded-top-4 product-image"
+        />
+
+        {/* Badge góc ảnh */}
+        {/* Góc trên bên trái */}
+        <div className="position-absolute top-0 start-0 m-2">
+          <span className="badge bg-danger shadow-sm fw-semibold">
+            🔥 {label}
+          </span>
         </div>
 
-        <img src={image} alt={title} className="img-fluid rounded" />
+        {/* Góc trên bên phải */}
+        <div className="position-absolute top-0 end-0 m-2">
+          <span className="badge bg-primary shadow-sm">FREESHIP</span>
+        </div>
 
-        {/* Icon hover giữa ảnh */}
-        <div className="center-icons">
-          <span className="circle-icon" onClick={() => onViewDetails()}>
+        {/* Icon hover */}
+        <div className="position-absolute top-50 start-50 translate-middle d-flex gap-2 icons-hover">
+          <span
+            className="icon-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClickDetail(product);
+            }}
+          >
             <FaSlidersH />
           </span>
           <span
-            className="circle-icon"
+            className="icon-btn"
             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation(); // Chặn click lan ra ngoài
+              e.stopPropagation();
               onQuickView(product);
             }}
           >
             <FaEye />
           </span>
           <span
-            className="circle-icon"
+            className="icon-btn"
             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation(); // Chặn click lan ra ngoài
-              // Add action here (e.g., like)
+              e.stopPropagation();
             }}
           >
             <FaHeart />
@@ -76,39 +91,41 @@ const ProductCard = ({
         </div>
       </div>
 
-      <h6 className="product-title text-truncate mt-2">{title}</h6>
-      <div className="text-muted small">
-        {gender} - Size {size}
-      </div>
-      <div className="fw-bold text-danger">{price.toLocaleString()}₫</div>
-
-      {variants?.length > 0 && (
-        <div className="d-flex gap-1 mt-2">
-          {variants.map((color, idx) => (
-            <span
-              key={idx}
-              style={{
-                backgroundColor: color,
-                width: 16,
-                height: 16,
-                borderRadius: "50%",
-                border: "1px solid #ccc",
-              }}
-            ></span>
-          ))}
+      <div className="p-3">
+        <h6 className="product-title text-truncate mb-1">{title}</h6>
+        <div className="text-muted small mb-1">
+          {gender} - Size {size}
         </div>
-      )}
+        <div className="fw-bold text-danger mb-2 fs-6">
+          {price.toLocaleString()}₫
+        </div>
 
-      <div className="mt-2 d-flex gap-2">
-        <span className="badge bg-purple text-white">{label} 9.9</span>
-        <span className="badge bg-success text-white">
-          <FaCheckCircle className="me-1" /> {promo}
-        </span>
-      </div>
+        {variants?.length > 0 && (
+          <div className="d-flex gap-1 mb-2">
+            {variants.map((color, idx) => (
+              <span
+                key={idx}
+                style={{
+                  backgroundColor: color,
+                  width: 18,
+                  height: 18,
+                  borderRadius: "50%",
+                  border: "1px solid #ccc",
+                }}
+              ></span>
+            ))}
+          </div>
+        )}
 
-      <div className="text-muted small mt-2">
-        <FaFire className="text-warning me-1" />
-        Đã bán {sold}
+        <div className="d-flex justify-content-between align-items-center mt-2">
+          <span className="badge bg-success d-flex align-items-center gap-1">
+            <FaCheckCircle /> {promo}
+          </span>
+          <span className="text-muted small d-flex align-items-center gap-1">
+            <FaFire className="text-warning" />
+            Đã bán {sold}
+          </span>
+        </div>
       </div>
     </div>
   );
