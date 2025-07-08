@@ -2,11 +2,37 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getProductById } from "../../api/productApi";
 import CommentSection from "../../components/CommentSection";
+import { addToCart } from "../../api/cartApi";
+import { message } from "antd";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+
+  const handleAddToCart = async () => {
+    try {
+      if (!selectedColor || !selectedSize) {
+        return toast.error("Vui lòng chọn màu sắc và kích thước!");
+      }
+
+      const data = {
+        productId: id,
+        quantity,
+        color: selectedColor,
+        size: selectedSize,
+      };
+
+      await addToCart(data);
+      message.success("Đã thêm vào giỏ hàng!");
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ:", error);
+      message.error("Không thể thêm vào giỏ hàng.");
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -14,6 +40,8 @@ const ProductDetailPage = () => {
         const res = await getProductById(id);
         setProduct(res.data);
         setSelectedImage(res.data.thumbnail || res.data.image);
+        setSelectedColor(res.data.colors?.[0] || "");
+        setSelectedSize(res.data.size?.[0] || "");
       } catch (err) {
         console.error("Lỗi khi lấy sản phẩm:", err);
       }
@@ -33,20 +61,8 @@ const ProductDetailPage = () => {
     oldPrice,
     label,
     promo,
-    variants = [
-      "#000000",
-      "#FFFFFF",
-      "#FF0000",
-      "#00FF00",
-      "#0000FF",
-    ],
-    sizes = [
-      "S",
-      "M",
-      "L",
-      "XL",
-      "XXL",
-    ],
+    colors,
+    size,
     promoCodes = ["HELLO", "FREESHIP"],
   } = product;
 
@@ -55,7 +71,6 @@ const ProductDetailPage = () => {
       <div className="row">
         {/* Hình ảnh sản phẩm */}
         <div className="col-md-6">
-          {/* Ảnh lớn */}
           <img
             src={selectedImage}
             alt={title}
@@ -63,7 +78,6 @@ const ProductDetailPage = () => {
             style={{ maxHeight: "500px", objectFit: "cover" }}
           />
 
-          {/* Ảnh phụ */}
           <div className="d-flex gap-2">
             {[thumbnail, ...images].map((img, i) => (
               <img
@@ -91,7 +105,6 @@ const ProductDetailPage = () => {
         <div className="col-md-6">
           <h4>{title}</h4>
           <div className="text-muted mb-2">{description}</div>
-
           {label && (
             <span className="badge bg-warning text-dark me-2">{label}</span>
           )}
@@ -105,7 +118,6 @@ const ProductDetailPage = () => {
             )}
           </div>
 
-          {/* Mã giảm giá */}
           <div className="mb-3">
             {promoCodes.map((code, i) => (
               <span key={i} className="badge bg-danger me-2">
@@ -114,25 +126,31 @@ const ProductDetailPage = () => {
             ))}
           </div>
 
-          {/* Chọn size */}
           <div className="mb-3">
             <strong>Kích thước:</strong>
             <div className="d-flex gap-2 mt-2">
-              {sizes.length
-                ? sizes.map((sz, i) => (
-                    <button key={i} className="btn btn-outline-secondary">
-                      {sz}
-                    </button>
-                  ))
-                : "Không có dữ liệu"}
+              {Array.isArray(size) ? (
+                size.map((sz, i) => (
+                  <button
+                    key={i}
+                    className={`btn ${
+                      selectedSize === sz ? "btn-dark" : "btn-outline-secondary"
+                    }`}
+                    onClick={() => setSelectedSize(sz)}
+                  >
+                    {sz}
+                  </button>
+                ))
+              ) : (
+                <div>Không có size</div>
+              )}
             </div>
           </div>
 
-          {/* Chọn màu sắc */}
           <div className="mb-3">
             <strong>Màu sắc:</strong>
             <div className="d-flex gap-2 mt-2">
-              {variants.map((color, i) => (
+              {colors.map((color, i) => (
                 <div
                   key={i}
                   style={{
@@ -140,31 +158,37 @@ const ProductDetailPage = () => {
                     width: 25,
                     height: 25,
                     borderRadius: "50%",
-                    border: "1px solid #ccc",
+                    border:
+                      selectedColor === color
+                        ? "3px solid #007bff"
+                        : "1px solid #ccc",
                     cursor: "pointer",
                   }}
                   title={color}
+                  onClick={() => setSelectedColor(color)}
                 ></div>
               ))}
             </div>
           </div>
 
-          {/* Số lượng và nút */}
           <div className="d-flex align-items-center gap-2 mt-4">
             <input
               type="number"
-              defaultValue={1}
+              value={quantity}
               min={1}
               className="form-control"
               style={{ width: "80px" }}
+              onChange={(e) => setQuantity(Number(e.target.value))}
             />
-            <button className="btn btn-outline-dark w-100">
-             Thêm vào giỏ hàng
+            <button
+              className="btn btn-outline-dark w-100"
+              onClick={handleAddToCart}
+            >
+              Thêm vào giỏ hàng
             </button>
             <button className="btn btn-primary w-100">Mua ngay</button>
           </div>
 
-          {/* Icons tiện ích */}
           <div className="mt-4 row text-center small text-muted">
             <div className="col-4">🚚 Giao hàng nhanh 24h</div>
             <div className="col-4">🔄 Đổi trả 60 ngày</div>

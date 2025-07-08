@@ -1,4 +1,8 @@
-// src/api/cart.js
 import api from ".";
 
-export const cartApi = (data) => api.post("/cart", data);
+export const getCart = (data) => api.get("/api/carts", data);
+
+export const addToCart = (data) => api.post("/api/carts", data);
+
+export const removeFromCart = (productId) =>
+  api.delete(`/api/carts/${productId}`);

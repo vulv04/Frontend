@@ -13,6 +13,7 @@ import {
   FiShoppingBag,
 } from "react-icons/fi";
 import { message } from "antd";
+import CartDropdown from "./CartDropdown";
 const StyledNavLink = styled(RouterNavLink)`
   position: relative;
   display: inline-block;
@@ -148,14 +149,12 @@ const SearchWrapper = styled.div`
   }
 `;
 
-
 const Header = () => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage(); // 👈 Lấy thêm setLang
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef();
-
   const t = (key) => translations[lang][key] || key; // 👈 Tạo hàm t()
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -306,8 +305,7 @@ const Header = () => {
                   <Badge>3</Badge>
                 </IconWrapper>
                 <IconWrapper onClick={() => navigate("/cart")}>
-                  <FiShoppingBag />
-                  <Badge>0</Badge>
+                  <CartDropdown />
                 </IconWrapper>
               </IconGroup>
             </div>

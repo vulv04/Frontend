@@ -1,44 +1,27 @@
-import React, { createContext, useContext, useState } from "react";
+// src/context/CartContext.jsx
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { getCart } from "../api/cartApi";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  const addToCart = (item) => {
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i._id === item._id);
-      if (existing) {
-        return prev.map((i) =>
-          i._id === item._id
-            ? { ...i, quantity: i.quantity + item.quantity }
-            : i
-        );
-      }
-      return [...prev, { ...item }];
-    });
+  const fetchCart = async () => {
+    try {
+      const res = await getCart();
+      setCartItems(res.data.items);
+    } catch (err) {
+      console.error("Lỗi lấy giỏ hàng:", err);
+    }
   };
 
-  const removeFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => item._id !== id));
-  };
-
-  const updateQuantity = (id, quantity) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item._id === id ? { ...item, quantity } : item))
-    );
-  };
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        setCartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-      }}
-    >
+    <CartContext.Provider value={{ cartItems, setCartItems, fetchCart }}>
       {children}
     </CartContext.Provider>
   );

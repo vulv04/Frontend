@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import styled from "@emotion/styled";
 
 const BreadcrumbWrapper = styled.div`
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 16px;
   color: #666;
   display: flex;
@@ -19,7 +19,6 @@ const CrumbLink = styled(NavLink)`
   }
 
   &.active {
-    font-weight: bold;
     color: #333;
   }
 `;

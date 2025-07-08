@@ -25,6 +25,21 @@ const HomePage = () => {
   const handleQuickView = (product) => {
     setQuickViewProduct(product);
   };
+  const handleAddToCart = async (product) => {
+    try {
+      const cartItem = {
+        productId: product._id,
+        quantity: 1,
+        color: product.colors?.[0] || "",
+        size: product.size?.[0] || "",
+      };
+      await addToCart(cartItem);
+      alert("Đã thêm vào giỏ hàng!");
+    } catch (err) {
+      console.error("Lỗi thêm giỏ hàng:", err.message);
+      alert("Lỗi khi thêm sản phẩm vào giỏ.");
+    }
+  };
 
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,10 +82,13 @@ const HomePage = () => {
       <section className="container my-5">
         <h1 className="mb-4 text-center">{t("welcome_title")}</h1>
         <p className="text-center lead mb-5">{t("welcome_subtitle")}</p>
-
+        <div className="mb-4">
+          <h2>Sản phẩm mới</h2>
+        </div>
         {loading && (
           <div className="text-center my-5">
             <div className="spinner-border" role="status" />
+
             <p>{t("loading")}</p>
           </div>
         )}
@@ -90,7 +108,6 @@ const HomePage = () => {
                 id,
                 _id, // nếu dùng MongoDB
                 title,
-                description,
                 thumbnail,
                 price,
                 images,

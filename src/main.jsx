@@ -4,11 +4,16 @@ import App from "./App.jsx";
 import "./App.css";
 import ThemeProvider from "./contexts/ThemeContext.jsx";
 import { LanguageProvider } from "./contexts/LanguageContext.jsx";
+import { CartProvider } from "./contexts/CartContext.jsx"; // ⬅️ Import thêm dòng này
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ThemeProvider>
-    <LanguageProvider>
-        <App />
-    </LanguageProvider>
-  </ThemeProvider>
+  <React.StrictMode>
+    <ThemeProvider>
+      <LanguageProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </LanguageProvider>
+    </ThemeProvider>
+  </React.StrictMode>
 );

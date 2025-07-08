@@ -7,6 +7,9 @@ import { loginApi } from "../../api/authApi";
 import { loginSchema } from "../../Validation/authSchema";
 import styled from "@emotion/styled";
 import { message } from "antd";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import SocialLoginButtons from "../../components/SocialLoginButtons";
 
 const Background = styled.div`
   min-height: 100vh;
@@ -82,70 +85,79 @@ const LoginPage = () => {
   };
 
   return (
-    <Background>
-      <Container>
-        <h2 className="text-center mb-4">Đăng nhập</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email:
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={`form-control ${errors.email ? "is-invalid" : ""}`}
-              placeholder="Nhập email của bạn"
-              {...register("email")}
-            />
-            {errors.email && (
-              <div className="invalid-feedback">{errors.email.message}</div>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Mật khẩu:
-            </label>
-            <div className="input-group">
+    <div>
+      <Header />
+      <Background>
+        <Container>
+          <h2 className="text-center mb-4">Đăng nhập</h2>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">
+                Email:
+              </label>
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                className={`form-control ${
-                  errors.password ? "is-invalid" : ""
-                }`}
-                placeholder="Nhập mật khẩu"
-                {...register("password")}
+                id="email"
+                type="email"
+                className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                placeholder="Nhập email của bạn"
+                {...register("email")}
               />
-              <span
-                className="input-group-text"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ cursor: "pointer" }}
-              >
-                {showPassword ? "👁" : "🙈"}
-              </span>
+              {errors.email && (
+                <div className="invalid-feedback">{errors.email.message}</div>
+              )}
             </div>
-            {errors.password && (
-              <div className="invalid-feedback">{errors.password.message}</div>
-            )}
-          </div>
 
-          <div className="mb-3 text-center">
-            <span>Bạn chưa có tài khoản? </span>
-            <Link to="/api/auth/register">Đăng ký ngay!</Link>
-          </div>
+            <div className="mb-3">
+              <label htmlFor="password" className="form-label">
+                Mật khẩu:
+              </label>
+              <div className="input-group">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  className={`form-control ${
+                    errors.password ? "is-invalid" : ""
+                  }`}
+                  placeholder="Nhập mật khẩu"
+                  {...register("password")}
+                />
+                <span
+                  className="input-group-text"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {showPassword ? "👁" : "🙈"}
+                </span>
+              </div>
+              {errors.password && (
+                <div className="invalid-feedback">
+                  {errors.password.message}
+                </div>
+              )}
+            </div>
 
-          <div className="d-grid">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isLoading}
-            >
-              {isLoading ? "Đang xử lý..." : "Đăng nhập"}
-            </button>
-          </div>
-        </form>
-      </Container>
-    </Background>
+            <div className="mb-3 text-center">
+              <span>Bạn chưa có tài khoản? </span>
+              <Link to="/api/auth/register">Đăng ký ngay!</Link>
+            </div>
+
+            <div className="d-grid">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? "Đang xử lý..." : "Đăng nhập"}
+              </button>
+            </div>
+            <div className="d-flex justify-content-center mt-3">
+              <SocialLoginButtons />
+            </div>
+          </form>
+        </Container>
+      </Background>
+      <Footer />
+    </div>
   );
 };
 
