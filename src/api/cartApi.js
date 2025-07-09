@@ -1,6 +1,6 @@
 import api from ".";
 
-export const getCart = (data) => api.get("/api/carts", data);
+export const getCart = () => api.get("/api/carts");
 
 export const addToCart = (data) => api.post("/api/carts", data);
 

@@ -49,23 +49,9 @@ const Content = styled.main`
   transition: margin-left 0.3s;
   padding: 16px;
   background-color: #f9f9f9;
-  height: calc(100vh - 60px - 40px);
+  height: calc(100vh - 60px);
   overflow-y: auto;
   width: calc(100% - ${(props) => (props.collapsed ? "60px" : "240px")});
-`;
-
-const FooterWrapper = styled.footer`
-  height: 40px;
-  flex-shrink: 0;
-  background-color: #fff;
-  box-shadow: 0 -2px 4px rgb(0 0 0 / 0.1);
-  text-align: center;
-  line-height: 40px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
 `;
 
 const AdminLayout = () => {
@@ -89,9 +75,6 @@ const AdminLayout = () => {
           <Outlet />
         </Content>
       </Body>
-      <FooterWrapper>
-        <FooterAdmin />
-      </FooterWrapper>
     </LayoutWrapper>
   );
 };

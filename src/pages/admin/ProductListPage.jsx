@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   getProducts,
   deleteProduct,
@@ -7,6 +7,7 @@ import {
 } from "../../api/productApi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { message } from "antd";
 
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);
@@ -16,8 +17,18 @@ const ProductListPage = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [page, setPage] = useState(1);
   const limit = 5;
-
   const navigate = useNavigate();
+
+  const formatDate = (date) => {
+    return new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date(date));
+  };
 
   const fetchData = async () => {
     try {
@@ -25,7 +36,7 @@ const ProductListPage = () => {
       const data = res.data.products || res.data;
       setProducts(data);
     } catch (error) {
-      toast.error("Lỗi khi tải danh sách sản phẩm");
+      message.error("Lỗi khi tải danh sách sản phẩm");
     }
   };
 
@@ -39,32 +50,10 @@ const ProductListPage = () => {
 
     try {
       await deleteProduct(id);
-      toast.success("Xoá thành công!");
+      message.success("Xoá thành công!");
       fetchData();
     } catch (error) {
-      toast.error("Xoá thất bại!");
-    }
-  };
-
-  const handleToggleCompleted = async (product) => {
-    try {
-      if (!product || !product._id) {
-        console.error("Product ID is missing:", product);
-        return;
-      }
-
-      const updatedProduct = {
-        ...product,
-        completed: !product.completed,
-      };
-
-      const response = await updateProduct(product._id, updatedProduct);
-      console.log("Update success:", response.data);
-      toast.success("Cập nhật thành công");
-      fetchData();
-    } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Không thể cập nhật sản phẩm");
+      message.error("Xoá thất bại!");
     }
   };
 
@@ -97,10 +86,32 @@ const ProductListPage = () => {
   const totalPages = Math.ceil(sorted.length / limit);
   const paginated = sorted.slice((page - 1) * limit, page * limit);
 
+  const statusLabels = {
+    pending: "Chờ xử lý",
+    processing: "Đang xử lý",
+    shipping: "Đang giao",
+    completed: "Hoàn thành",
+    cancelled: "Đã huỷ",
+  };
+
+  const allowedTransitions = {
+    pending: ["processing", "cancelled"],
+    processing: ["shipping", "cancelled"],
+    shipping: ["completed", "cancelled"],
+    completed: [],
+    cancelled: [],
+  };
+
   return (
     <div className="container py-4">
       <ToastContainer />
-      <h2 className="mb-4">Danh sách Todo</h2>
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Danh sách sản phẩm</h2>
+        <Link to="/admin/products/add" className="btn btn-primary">
+          Thêm sản phẩm
+        </Link>
+      </div>
 
       {/* Tìm kiếm, lọc, sắp xếp */}
       <div className="row g-2 mb-4">
@@ -152,51 +163,109 @@ const ProductListPage = () => {
         </div>
       </div>
 
-      {/* Bảng todo */}
+      {/* Bảng item */}
       <table className="table table-bordered table-hover align-middle">
         <thead className="table-light">
           <tr>
             <th>Title</th>
+            <th>Images</th>
             <th>Priority</th>
             <th>Completed</th>
+            <th>Status</th>
+            <th>Created At</th>
             <th style={{ minWidth: "200px" }}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {paginated.map((todo) => (
-            <tr key={todo._id}>
-              <td>{todo.title}</td>
-              <td className={`text-capitalize fw-semibold`}>{todo.priority}</td>
+          {paginated.map((item) => (
+            <tr key={item._id}>
+              <td>{item.title}</td>
               <td>
-                {todo.completed ? (
-                  <span className="badge bg-success">Hoàn Thành</span>
-                ) : (
-                  <span className="badge bg-warning text-dark">
-                    Chưa hoàn thành
-                  </span>
-                )}
+                <img
+                  src={item.images[0]}
+                  className="img-thumbnail"
+                  style={{
+                    width: "200px",
+                    height: "200px",
+                    objectFit: "cover",
+                  }}
+                  alt="variant"
+                />
+              </td>
+              <td className="text-capitalize fw-semibold">{item.priority}</td>
+              <td>
+                <span
+                  className={`badge me-2 ${
+                    item.status === "completed"
+                      ? "bg-success"
+                      : item.status === "processing"
+                      ? "bg-warning text-dark"
+                      : item.status === "shipping"
+                      ? "bg-info text-dark"
+                      : item.status === "cancelled"
+                      ? "bg-danger"
+                      : "bg-secondary"
+                  }`}
+                >
+                  {statusLabels[item.status] || "Không xác định"}
+                </span>
               </td>
               <td>
-                <button
-                  onClick={() => handleToggleCompleted(todo)}
-                  className="btn btn-sm btn-outline-success me-2"
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const newStatus = e.target.value;
+                    const allowed = allowedTransitions[item.status] || [];
+
+                    if (!allowed.includes(newStatus)) {
+                      toast.error(
+                        "Không thể chuyển về trạng thái trước hoặc trạng thái không hợp lệ"
+                      );
+                      return;
+                    }
+
+                    updateProduct(item._id, { status: newStatus }).then(() => {
+                      setProducts((prev) =>
+                        prev.map((p) =>
+                          p._id === item._id ? { ...p, status: newStatus } : p
+                        )
+                      );
+                      toast.success("Cập nhật trạng thái thành công");
+                    });
+                  }}
+                  className="form-select form-select-sm d-inline-block w-auto"
                 >
-                  {todo.completed ? "Bỏ hoàn thành" : "Hoàn thành"}
-                </button>
+                  <option value="">Chuyển trạng thái</option>
+                  {Object.entries(statusLabels).map(([key, label]) => (
+                    <option
+                      key={key}
+                      value={key}
+                      disabled={
+                        key === item.status ||
+                        !(allowedTransitions[item.status] || []).includes(key)
+                      }
+                    >
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td>{formatDate(item.createdAt)}</td>
+              <td>
                 <button
-                  onClick={() => navigate(`/admin/todos/edit/${todo._id}`)}
+                  onClick={() => navigate(`/admin/todos/edit/${item._id}`)}
                   className="btn btn-sm btn-outline-primary me-2"
                 >
                   Sửa
                 </button>
                 <button
-                  onClick={() => navigate(`/admin/todos/detail/${todo._id}`)}
+                  onClick={() => navigate(`/admin/todos/detail/${item._id}`)}
                   className="btn btn-sm btn-outline-secondary me-2"
                 >
                   Chi tiết
                 </button>
                 <button
-                  onClick={() => handleDelete(todo._id)}
+                  onClick={() => handleDelete(item._id)}
                   className="btn btn-sm btn-outline-danger"
                 >
                   Xoá
@@ -206,7 +275,7 @@ const ProductListPage = () => {
           ))}
           {paginated.length === 0 && (
             <tr>
-              <td colSpan={4} className="text-center text-muted">
+              <td colSpan={7} className="text-center text-muted">
                 Không có dữ liệu phù hợp
               </td>
             </tr>
