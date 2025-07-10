@@ -5,12 +5,13 @@ import ProductListPage from "../pages/admin/ProductListPage";
 import CategoryListPage from "../pages/admin/CategoryListPage";
 import CategoryFormPage from "../pages/admin/CategoryFormPage";
 import ProductFormPage from "../pages/admin/ProductFormPage";
-import OrderPage from "../pages/client/OrderPage";
 import OrderFormPage from "../pages/admin/OrderFormPage";
 import OrderDetailPage from "../pages/admin/OrderDetailPage";
 import ProfileFormPage from "../pages/admin/ProfileFormPage";
 import BlogFormPage from "../pages/admin/BlogFormPage";
 import DashBoardPage from "../pages/admin/DashBoardPage";
+import OrderListPage from "../pages/admin/OrderListPage";
+import ProductVariantsPage from "../pages/admin/ProductVariantsPage";
 export const adminRoutes = [
   { index: true, element: <DashBoardPage /> },
   { path: "settings", element: <SettingsPage /> },
@@ -27,7 +28,7 @@ export const adminRoutes = [
   { path: "categories/add", element: <CategoryFormPage /> },
 
   // * Orders routes
-  { path: "orders", element: <OrderPage /> },
+  { path: "orders", element: <OrderListPage /> },
   { path: "orders/:id", element: <OrderDetailPage /> },
   { path: "orders/edit/:id", element: <OrderFormPage /> },
   { path: "orders/add", element: <OrderFormPage /> },
@@ -41,4 +42,7 @@ export const adminRoutes = [
   { path: "blogs", element: <BlogFormPage /> },
   { path: "blogs/edit/:id", element: <BlogFormPage /> },
   { path: "blogs/add", element: <BlogFormPage /> },
+
+  // Biến thể
+  { path: "variants", element: <ProductVariantsPage /> },
 ];

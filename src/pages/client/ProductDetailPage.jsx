@@ -4,11 +4,12 @@ import { getProductById } from "../../api/productApi";
 import CommentSection from "../../components/CommentSection";
 import { addToCart } from "../../api/cartApi";
 import { message } from "antd";
+import { toast } from "react-toastify";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -16,7 +17,7 @@ const ProductDetailPage = () => {
   const handleAddToCart = async () => {
     try {
       if (!selectedColor || !selectedSize) {
-        return toast.error("Vui lòng chọn màu sắc và kích thước!");
+        return message.error("Vui lòng chọn màu sắc và kích thước!");
       }
 
       const data = {
@@ -38,10 +39,11 @@ const ProductDetailPage = () => {
     const fetchProduct = async () => {
       try {
         const res = await getProductById(id);
-        setProduct(res.data);
-        setSelectedImage(res.data.thumbnail || res.data.image);
-        setSelectedColor(res.data.colors?.[0] || "");
-        setSelectedSize(res.data.size?.[0] || "");
+        const data = res.data;
+        setProduct(data);
+        setSelectedImage(data.thumbnail || data.images?.[0] || null);
+        setSelectedColor(data.colors?.[0] || "");
+        setSelectedSize(data.size?.[0] || "");
       } catch (err) {
         console.error("Lỗi khi lấy sản phẩm:", err);
       }
@@ -61,8 +63,8 @@ const ProductDetailPage = () => {
     oldPrice,
     label,
     promo,
-    colors,
-    size,
+    colors = [],
+    size = [],
     promoCodes = ["HELLO", "FREESHIP"],
   } = product;
 
@@ -71,15 +73,29 @@ const ProductDetailPage = () => {
       <div className="row">
         {/* Hình ảnh sản phẩm */}
         <div className="col-md-6">
-          <img
-            src={selectedImage}
-            alt={title}
-            className="img-fluid rounded border mb-3 w-100"
-            style={{ maxHeight: "500px", objectFit: "cover" }}
-          />
+          {selectedImage ? (
+            <img
+              src={selectedImage}
+              alt={title || "Product"}
+              className="img-fluid rounded border mb-3 w-100"
+              style={{ maxHeight: "500px", objectFit: "cover" }}
+            />
+          ) : (
+            <div
+              className="text-center text-muted bg-light border mb-3"
+              style={{
+                height: "400px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Không có ảnh sản phẩm
+            </div>
+          )}
 
           <div className="d-flex gap-2">
-            {[thumbnail, ...images].map((img, i) => (
+            {[thumbnail, ...images].filter(Boolean).map((img, i) => (
               <img
                 key={i}
                 src={img}
@@ -103,15 +119,17 @@ const ProductDetailPage = () => {
 
         {/* Thông tin sản phẩm */}
         <div className="col-md-6">
-          <h4>{title}</h4>
-          <div className="text-muted mb-2">{description}</div>
+          <h4>{title || "Đang tải..."}</h4>
+          <div className="text-muted mb-2">
+            {description || "Chưa có mô tả"}
+          </div>
           {label && (
             <span className="badge bg-warning text-dark me-2">{label}</span>
           )}
 
           <div className="my-3">
             <span className="text-danger fs-4 fw-bold">
-              {price.toLocaleString()}₫
+              {(price ?? 0).toLocaleString()}₫
             </span>{" "}
             {oldPrice && (
               <del className="text-muted">{oldPrice.toLocaleString()}₫</del>
@@ -119,7 +137,7 @@ const ProductDetailPage = () => {
           </div>
 
           <div className="mb-3">
-            {promoCodes.map((code, i) => (
+            {(Array.isArray(promoCodes) ? promoCodes : []).map((code, i) => (
               <span key={i} className="badge bg-danger me-2">
                 {code}
               </span>
@@ -129,7 +147,7 @@ const ProductDetailPage = () => {
           <div className="mb-3">
             <strong>Kích thước:</strong>
             <div className="d-flex gap-2 mt-2">
-              {Array.isArray(size) ? (
+              {Array.isArray(size) && size.length > 0 ? (
                 size.map((sz, i) => (
                   <button
                     key={i}
@@ -218,7 +236,7 @@ const ProductDetailPage = () => {
         </ul>
         <div className="tab-content border p-3">
           <div className="tab-pane fade show active" id="desc">
-            {description}
+            {description || "Không có mô tả sản phẩm"}
           </div>
           <div className="tab-pane fade" id="guide">
             Liên hệ hỗ trợ hoặc đặt hàng nhanh qua hotline.

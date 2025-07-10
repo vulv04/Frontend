@@ -6,7 +6,7 @@ import {
   getCategoryById,
   updateCategory,
 } from "../../api/category";
-import { toast } from "react-toastify";
+import { message } from "antd";
 
 const CategoryFormPage = () => {
   const { id } = useParams();
@@ -27,7 +27,7 @@ const CategoryFormPage = () => {
           const data = res.data;
           Object.keys(data).forEach((key) => setValue(key, data[key]));
         })
-        .catch(() => toast.error("Không tải được danh mục"));
+        .catch(() => message.error("Không tải được danh mục"));
     }
   }, [id, setValue]);
 
@@ -35,14 +35,14 @@ const CategoryFormPage = () => {
     try {
       if (id) {
         await updateCategory(id, data);
-        toast.success("Cập nhật danh mục thành công");
+        message.success("Cập nhật danh mục thành công");
       } else {
         await createCategory(data);
-        toast.success("Thêm danh mục thành công");
+        message.success("Thêm danh mục thành công");
       }
       navigate("/admin/categories");
     } catch (err) {
-      toast.error("Lỗi khi lưu danh mục");
+      message.error("Lỗi khi lưu danh mục");
     }
   };
 

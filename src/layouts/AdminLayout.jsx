@@ -6,16 +6,22 @@ import HeaderAdmin from "../components/HeaderAdmin";
 import SideBarAdmin from "../components/SideBarAdmin";
 import Breadcrumb from "../components/Breadcrumb";
 
+// Sidebar width constants
+const SIDEBAR_WIDTH = {
+  expanded: 240,
+  collapsed: 80,
+};
+
 const LayoutWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
+  height: 100vh;
 `;
 
 const HeaderWrapper = styled.header`
-  height: 60px; /* chiều cao header */
-  flex-shrink: 0; /* không co lại */
-  background-color: #fff; /* hoặc màu khác */
+  height: 60px;
+  flex-shrink: 0;
+  background-color: #fff;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
   position: fixed;
   top: 0;
@@ -27,15 +33,18 @@ const HeaderWrapper = styled.header`
 const Body = styled.div`
   display: flex;
   flex: 1;
-  padding-top: 60px; /* cách ra đúng bằng header */
-  min-height: 0; /* để con flex có thể scroll */
+  padding-top: 60px;
+  min-height: 0;
   overflow: hidden;
 `;
 
 const SideBarWrapper = styled.aside`
-  width: ${(props) => (props.collapsed ? "100px" : "240px")};
+  width: ${(props) =>
+    props.collapsed
+      ? `${SIDEBAR_WIDTH.collapsed}px`
+      : `${SIDEBAR_WIDTH.expanded}px`};
   transition: width 0.3s;
-  background-color: #222;
+  background-color: #001529;
   color: white;
   position: fixed;
   top: 60px;
@@ -45,13 +54,22 @@ const SideBarWrapper = styled.aside`
 `;
 
 const Content = styled.main`
-  margin-left: ${(props) => (props.collapsed ? "60px" : "240px")};
+  margin-left: ${(props) =>
+    props.collapsed
+      ? `${SIDEBAR_WIDTH.collapsed}px`
+      : `${SIDEBAR_WIDTH.expanded}px`};
   transition: margin-left 0.3s;
   padding: 16px;
   background-color: #f9f9f9;
   height: calc(100vh - 60px);
   overflow-y: auto;
-  width: calc(100% - ${(props) => (props.collapsed ? "60px" : "240px")});
+  width: calc(
+    100% -
+      ${(props) =>
+        props.collapsed
+          ? `${SIDEBAR_WIDTH.collapsed}px`
+          : `${SIDEBAR_WIDTH.expanded}px`}
+  );
 `;
 
 const AdminLayout = () => {
@@ -75,6 +93,7 @@ const AdminLayout = () => {
           <Outlet />
         </Content>
       </Body>
+      <FooterAdmin />
     </LayoutWrapper>
   );
 };

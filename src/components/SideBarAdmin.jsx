@@ -1,35 +1,41 @@
 import styled from "@emotion/styled";
 import isPropValid from "@emotion/is-prop-valid";
 import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiUser,
-  FiBox,
-  FiSettings,
-  FiHome,
-} from "react-icons/fi";
+  HomeOutlined,
+  UserOutlined,
+  ShoppingOutlined,
+  AppstoreOutlined,
+  ProfileOutlined,
+  MessageOutlined,
+  BarChartOutlined,
+  SettingOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
 
-// Sidebar container
+// Sidebar width constants
+const SIDEBAR_WIDTH = {
+  expanded: 240,
+  collapsed: 80,
+};
+
 const SidebarWrapper = styled.div`
-  width: ${(props) => (props.collapsed ? "80px" : "240px")};
+  width: ${(props) =>
+    props.collapsed
+      ? `${SIDEBAR_WIDTH.collapsed}px`
+      : `${SIDEBAR_WIDTH.expanded}px`};
   transition: width 0.3s ease;
-  background-color: #2c3e50;
+  background-color: #001529;
   color: white;
   padding: 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  /* Thay đổi này: */
-  max-height: auto; /* hoặc max-height: 60vh; */
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 `;
 
-
-// Collapse toggle button
 const ToggleButton = styled.button`
   background: none;
   border: none;
@@ -45,14 +51,12 @@ const ToggleButton = styled.button`
   }
 `;
 
-// Menu container
 const Menu = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
 `;
 
-// MenuItem: fix prop warning by filtering "collapsed" from being passed to DOM
 const MenuItem = styled(NavLink, {
   shouldForwardProp: (prop) => isPropValid(prop) && prop !== "collapsed",
 })`
@@ -66,16 +70,16 @@ const MenuItem = styled(NavLink, {
   font-weight: 500;
 
   &:hover {
-    background-color: #34495e;
+    background-color: #1677ff44;
   }
 
   &.active {
+    background-color: #1677ff;
     color: #fff;
   }
 
   i {
-    width: 24px;
-    height: 24px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -90,72 +94,71 @@ const MenuItem = styled(NavLink, {
   }
 `;
 
-
-const SiderBarAdmin = ({ collapsed, onToggle }) => {
+const SideBarAdmin = ({ collapsed, onToggle }) => {
   return (
     <SidebarWrapper collapsed={collapsed}>
       <ToggleButton collapsed={collapsed} onClick={onToggle}>
-        {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
+        {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
       </ToggleButton>
 
       <Menu>
         <MenuItem to="" collapsed={collapsed}>
           <i>
-            <FiHome />
+            <HomeOutlined />
           </i>
           <span>Dashboard</span>
         </MenuItem>
         <MenuItem to="users" collapsed={collapsed}>
           <i>
-            <FiUser />
+            <UserOutlined />
           </i>
           <span>Users</span>
         </MenuItem>
         <MenuItem to="products" collapsed={collapsed}>
           <i>
-            <FiBox />
+            <AppstoreOutlined />
           </i>
           <span>Products</span>
         </MenuItem>
         <MenuItem to="orders" collapsed={collapsed}>
           <i>
-            <FiBox />
+            <ShoppingOutlined />
           </i>
           <span>Orders</span>
         </MenuItem>
         <MenuItem to="categories" collapsed={collapsed}>
           <i>
-            <FiBox />
+            <ProfileOutlined />
           </i>
           <span>Categories</span>
         </MenuItem>
         <MenuItem to="posts" collapsed={collapsed}>
           <i>
-            <FiBox />
+            <ProfileOutlined />
           </i>
           <span>Posts</span>
         </MenuItem>
         <MenuItem to="reviews" collapsed={collapsed}>
           <i>
-            <FiUser />
+            <UserOutlined />
           </i>
           <span>Reviews</span>
         </MenuItem>
         <MenuItem to="contact" collapsed={collapsed}>
           <i>
-            <FiUser />
+            <MessageOutlined />
           </i>
           <span>Contact</span>
         </MenuItem>
         <MenuItem to="analytics" collapsed={collapsed}>
           <i>
-            <FiBox />
+            <BarChartOutlined />
           </i>
           <span>Analytics</span>
         </MenuItem>
         <MenuItem to="settings" collapsed={collapsed}>
           <i>
-            <FiSettings />
+            <SettingOutlined />
           </i>
           <span>Settings</span>
         </MenuItem>
@@ -164,4 +167,4 @@ const SiderBarAdmin = ({ collapsed, onToggle }) => {
   );
 };
 
-export default SiderBarAdmin;
+export default SideBarAdmin;

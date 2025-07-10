@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { FiLogOut, FiBell, FiSettings, FiHome } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
+
+// ✅ Import icon Ant Design
+import {
+  HomeOutlined,
+  AppstoreOutlined,
+  BellOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 
 // Styled components
 const HeaderWrapper = styled.header`
@@ -57,6 +65,7 @@ const LogoutButton = styled.button`
     background-color: #f2f2f2;
   }
 `;
+
 const IconButton = styled(NavLink)`
   color: #000;
   font-size: 18px;
@@ -72,7 +81,6 @@ const IconButton = styled(NavLink)`
     background-color: #f2f2f2;
   }
 `;
-
 
 const HeaderAdmin = () => {
   const [user, setUser] = useState(null);
@@ -109,15 +117,22 @@ const HeaderAdmin = () => {
           />
         </NavLink>
       </LeftSection>
+
       <RightSection>
         <IconButton to="/admin" title="Trang quản trị">
-          <FiHome />
+          <HomeOutlined />
         </IconButton>
+
+        <IconButton to="/admin/variants" title="Biến thể sản phẩm">
+          <AppstoreOutlined />
+        </IconButton>
+
         <IconButton as="div" title="Thông báo">
-          <FiBell />
+          <BellOutlined />
         </IconButton>
+
         <IconButton as="div" title="Cài đặt">
-          <FiSettings />
+          <SettingOutlined />
         </IconButton>
 
         <Avatar
@@ -127,7 +142,7 @@ const HeaderAdmin = () => {
         <Username>Xin chào Admin, {user.username}</Username>
 
         <LogoutButton onClick={handleLogout}>
-          <FiLogOut />
+          <LogoutOutlined />
           Logout
         </LogoutButton>
       </RightSection>

@@ -1,32 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { createProduct, updateProduct } from "../../api/productApi";
-import { toast } from "react-toastify";
-import axios from "axios";
+import {
+  createProduct,
+  getProductById,
+  updateProduct,
+} from "../../api/productApi";
 import { message } from "antd";
 
 const ProductFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isEdit = Boolean(id);
 
   const {
     register,
     control,
     handleSubmit,
+    reset,
     setValue,
     formState: { errors },
-  } = useForm({ defaultValues: { variants: [] } });
+  } = useForm({ defaultValues: { variants: [], images: [] } });
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "variants",
   });
 
-  const isEdit = Boolean(id);
+  const [imageMode, setImageMode] = useState("url");
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
+  // Gửi form
   const onSubmit = async (data) => {
     try {
+      if (typeof data.images === "string") {
+        data.images = data.images
+          .split(",")
+          .map((url) => url.trim())
+          .filter((url) => url);
+      }
+
       if (isEdit) {
         await updateProduct(id, data);
         message.success("Cập nhật sản phẩm thành công");
@@ -37,17 +50,40 @@ const ProductFormPage = () => {
       navigate("/admin/products");
     } catch (error) {
       message.error("Lỗi khi lưu sản phẩm");
+      console.error(error.response?.data || error.message);
     }
   };
 
+  // Lấy dữ liệu khi edit
   useEffect(() => {
-    if (isEdit) {
-      axios.get(`/api/products/${id}`).then((res) => {
+    const fetchProduct = async () => {
+      try {
+        const res = await getProductById(id);
         const product = res.data;
-        Object.keys(product).forEach((key) => setValue(key, product[key]));
-      });
-    }
-  }, [id, isEdit, setValue]);
+
+        if (typeof product.images === "string") {
+          product.images = product.images.split(",").map((url) => url.trim());
+        }
+        
+        reset(product); // reset toàn bộ form
+        if (Array.isArray(product.images)) {
+          setSelectedFiles(product.images);
+        }
+      } catch (err) {
+        message.error("Không thể tải sản phẩm để chỉnh sửa");
+        console.error(err);
+      }
+    };
+
+    if (isEdit) fetchProduct();
+  }, [id, isEdit, reset]);
+
+  const handleImageFiles = (e) => {
+    const files = Array.from(e.target.files);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setSelectedFiles(urls);
+    setValue("images", urls); // gán preview
+  };
 
   const categoryOptions = [
     "Áo thun",
@@ -59,20 +95,12 @@ const ProductFormPage = () => {
     "Giày dép",
     "Phụ kiện",
   ];
-  const [imageMode, setImageMode] = useState("url");
-  const [selectedFiles, setSelectedFiles] = useState([]);
-
-  const handleImageFiles = (e) => {
-    const files = Array.from(e.target.files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setSelectedFiles(urls);
-    setValue("images", urls);
-  };
 
   return (
     <div className="container">
       <h2 className="mb-4">{isEdit ? "Cập nhật" : "Thêm"} sản phẩm</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Tên sản phẩm */}
         <div className="mb-3">
           <label className="form-label">Tên sản phẩm</label>
           <input
@@ -87,6 +115,7 @@ const ProductFormPage = () => {
           )}
         </div>
 
+        {/* Giá */}
         <div className="mb-3">
           <label className="form-label">Giá</label>
           <input
@@ -96,21 +125,23 @@ const ProductFormPage = () => {
               required: "Giá là bắt buộc",
               min: { value: 0, message: "Giá không được âm" },
             })}
-            onInput={(e) => e.target.value < 0 && (e.target.value = 0)}
           />
           {errors.price && (
             <div className="invalid-feedback">{errors.price.message}</div>
           )}
         </div>
 
+        {/* Mô tả */}
         <div className="mb-3">
           <label className="form-label">Mô tả</label>
           <textarea
             className="form-control"
             rows="4"
             {...register("description")}
-          ></textarea>
+          />
         </div>
+
+        {/* Ảnh sản phẩm */}
         <div className="mb-3">
           <label className="form-label">Ảnh sản phẩm</label>
           <div className="d-flex gap-4 mb-2">
@@ -168,6 +199,8 @@ const ProductFormPage = () => {
             </div>
           )}
         </div>
+
+        {/* Danh mục */}
         <div className="mb-3">
           <label className="form-label">Danh mục</label>
           <select className="form-control" {...register("category")}>
@@ -180,6 +213,7 @@ const ProductFormPage = () => {
           </select>
         </div>
 
+        {/* Giới tính */}
         <div className="mb-3">
           <label className="form-label">Giới tính</label>
           <select className="form-control" {...register("gender")}>
@@ -190,6 +224,7 @@ const ProductFormPage = () => {
           </select>
         </div>
 
+        {/* Slug */}
         <div className="mb-3">
           <label className="form-label">Slug</label>
           <input
@@ -201,9 +236,9 @@ const ProductFormPage = () => {
           )}
         </div>
 
+        {/* Biến thể sản phẩm */}
         <hr className="my-4" />
         <h4>Biến thể sản phẩm</h4>
-
         {fields.map((item, index) => (
           <div key={item.id} className="border rounded p-3 mb-3">
             <div className="row g-2">
@@ -232,12 +267,8 @@ const ProductFormPage = () => {
                   placeholder="Tồn kho"
                   {...register(`variants.${index}.stock`, {
                     required: true,
-                    min: {
-                      value: 0,
-                      message: "Tồn kho không được âm",
-                    },
+                    min: { value: 0, message: "Tồn kho không được âm" },
                   })}
-                  onInput={(e) => e.target.value < 0 && (e.target.value = 0)}
                 />
                 {errors.variants?.[index]?.stock && (
                   <div className="invalid-feedback">

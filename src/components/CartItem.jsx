@@ -2,7 +2,11 @@ import React from "react";
 import { FiTrash2 } from "react-icons/fi";
 
 const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
-  const { name, image, color, size, price, quantity } = item;
+  const { productId, color, size, quantity } = item;
+  const { name, price, images } = productId;
+
+  const formatCurrency = (num) =>
+    num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
   return (
     <tr>
@@ -10,9 +14,9 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
       <td>
         <div className="d-flex align-items-center gap-3">
           <img
-            src={image}
+            src={images?.[0]}
             alt={name}
-            className="rounded"
+            className="rounded border"
             style={{ width: 80, height: 80, objectFit: "cover" }}
           />
           <div>
@@ -26,7 +30,7 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
                 className="btn btn-sm btn-link text-danger p-0"
                 onClick={() => onRemove(item)}
               >
-                <FiTrash2 /> Xóa
+                <FiTrash2 className="me-1" /> Xóa
               </button>
             </div>
           </div>
@@ -34,7 +38,7 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
       </td>
 
       {/* Cột: Đơn giá */}
-      <td className="text-primary fw-medium">{price.toLocaleString()}đ</td>
+      <td className="text-primary fw-medium">{formatCurrency(price)}</td>
 
       {/* Cột: Số lượng */}
       <td>
@@ -42,6 +46,7 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
           <button
             className="btn btn-outline-secondary btn-sm"
             onClick={() => onDecrease(item)}
+            disabled={quantity <= 1}
           >
             −
           </button>
@@ -57,7 +62,7 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
 
       {/* Cột: Thành tiền */}
       <td className="fw-bold text-danger">
-        {(price * quantity).toLocaleString()}đ
+        {formatCurrency(price * quantity)}
       </td>
     </tr>
   );
