@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getAllOrders, updateOrderStatus } from "../../api/orderApi";
-import { message, Select, Tag, Spin } from "antd";
-import dayjs from "dayjs";
+import { getMyOrders } from "../../api/orderApi";
 import { useNavigate } from "react-router-dom";
+import { message, Spin, Tag } from "antd";
+import dayjs from "dayjs";
 
-const statusOptions = [
-  "pending",
-  "processing",
-  "shipping",
-  "completed",
-  "cancelled",
-];
 const statusColorMap = {
   pending: "default",
   processing: "blue",
@@ -19,88 +12,55 @@ const statusColorMap = {
   cancelled: "red",
 };
 
-const OrderListPage = () => {
+const OrderHistoryPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState("");
   const navigate = useNavigate();
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await getAllOrders({ status: filter });
+      const res = await getMyOrders();
       setOrders(res.data?.data || []);
     } catch (err) {
-      message.error("Không thể tải danh sách đơn hàng");
+      message.error("Không thể tải lịch sử đơn hàng");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      await updateOrderStatus(orderId, newStatus);
-      message.success("Đã cập nhật trạng thái");
-      fetchOrders();
-    } catch (err) {
-      message.error("Cập nhật trạng thái thất bại");
-    }
-  };
-
   useEffect(() => {
     fetchOrders();
-  }, [filter]);
+  }, []);
 
   return (
     <div className="container py-4">
-      <h2 className="mb-3">📦 Quản lý đơn hàng</h2>
-
-      <div className="mb-3 d-flex align-items-center gap-2">
-        <span>Lọc theo trạng thái:</span>
-        <Select
-          placeholder="Tất cả"
-          allowClear
-          style={{ width: 200 }}
-          onChange={(val) => setFilter(val)}
-          value={filter || undefined}
-          options={statusOptions.map((s) => ({ label: s, value: s }))}
-        />
-      </div>
+      <h2 className="mb-4">🛒 Lịch sử đơn hàng của bạn</h2>
 
       {loading ? (
         <Spin />
+      ) : orders.length === 0 ? (
+        <p>❗Bạn chưa có đơn hàng nào.</p>
       ) : (
         <div className="table-responsive">
           <table className="table table-bordered align-middle">
             <thead>
               <tr>
                 <th>Mã đơn</th>
-                <th>Khách hàng</th>
                 <th>Ngày đặt</th>
                 <th>Trạng thái</th>
                 <th>Tổng tiền</th>
                 <th>Sản phẩm</th>
-                <th>Hành động</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order._id}>
                   <td>{order.code || order._id.slice(-6).toUpperCase()}</td>
-                  <td>{order.user?.name || "N/A"}</td>
                   <td>{dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}</td>
                   <td>
-                    <Select
-                      value={order.status}
-                      onChange={(val) => handleStatusChange(order._id, val)}
-                      size="small"
-                      style={{ minWidth: 120 }}
-                      options={statusOptions.map((s) => ({
-                        label: s,
-                        value: s,
-                      }))}
-                    />
-                    <Tag color={statusColorMap[order.status]} className="mt-1">
+                    <Tag color={statusColorMap[order.status] || "default"}>
                       {order.status}
                     </Tag>
                   </td>
@@ -114,8 +74,8 @@ const OrderListPage = () => {
                   </td>
                   <td>
                     <button
-                      className="btn btn-sm btn-outline-info"
-                      onClick={() => navigate(`/admin/orders/${order._id}`)}
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => navigate(`/orders/${order._id}`)}
                     >
                       Xem chi tiết
                     </button>
@@ -130,4 +90,4 @@ const OrderListPage = () => {
   );
 };
 
-export default OrderListPage;
+export default OrderHistoryPage;

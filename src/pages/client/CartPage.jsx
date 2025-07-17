@@ -56,9 +56,10 @@ const CartPage = () => {
   };
 
   const totalAmount = cartItems.reduce(
-    (acc, item) => acc + item.productId.price * item.quantity,
+    (acc, item) => acc + (item.productId?.price || 0) * item.quantity,
     0
   );
+  
 
   const missingAmount = Math.max(FREESHIP_THRESHOLD - totalAmount, 0);
   const progressPercent = Math.min(
@@ -114,73 +115,50 @@ const CartPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {cartItems.map((item) => (
-                  <tr key={item.productId._id}>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={item.productId.images[0]}
-                          alt={item.productId.name}
-                          style={{
-                            width: "70px",
-                            height: "90px",
-                            objectFit: "contain",
-                            border: "1px solid #ddd",
-                            marginRight: "10px",
-                          }}
-                        />
-                        <div>
-                          <p className="mb-1 fw-bold">{item.productId.name}</p>
-                          <p
-                            className="mb-1 text-muted"
-                            style={{ fontSize: "13px" }}
-                          >
-                            {item.size} / {item.color}
-                          </p>
-                          <button
-                            className="btn btn-link p-0 text-danger"
-                            onClick={() => handleRemove(item.productId._id)}
-                          >
-                            Xóa
-                          </button>
+                {cartItems.map((item, index) => {
+                  const product = item.productId;
+                  if (!product) return null;
+
+                  return (
+                    <tr key={product._id}>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <img
+                            src={product.images?.[0]}
+                            alt={product.name}
+                            style={{
+                              width: "70px",
+                              height: "90px",
+                              objectFit: "contain",
+                              border: "1px solid #ddd",
+                              marginRight: "10px",
+                            }}
+                          />
+                          <div>
+                            <p className="mb-1 fw-bold">{product.name}</p>
+                            <p
+                              className="mb-1 text-muted"
+                              style={{ fontSize: "13px" }}
+                            >
+                              {item.size} / {item.color}
+                            </p>
+                            <button
+                              className="btn btn-link p-0 text-danger"
+                              onClick={() => handleRemove(product._id)}
+                            >
+                              Xóa
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>{item.productId.price.toLocaleString()}₫</td>
-                    <td>
-                      <div
-                        className="input-group input-group-sm"
-                        style={{ maxWidth: "120px" }}
-                      >
-                        <button
-                          className="btn btn-outline-secondary"
-                          onClick={() =>
-                            handleQuantityChange(item.productId._id, "dec")
-                          }
-                        >
-                          -
-                        </button>
-                        <input
-                          type="text"
-                          className="form-control text-center"
-                          value={item.quantity}
-                          readOnly
-                        />
-                        <button
-                          className="btn btn-outline-secondary"
-                          onClick={() =>
-                            handleQuantityChange(item.productId._id, "inc")
-                          }
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td>
-                      {(item.productId.price * item.quantity).toLocaleString()}₫
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>{product.price.toLocaleString()}₫</td>
+                      <td>{/* quantity buttons */}</td>
+                      <td>
+                        {(product.price * item.quantity).toLocaleString()}₫
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <div className="text-end fw-bold">

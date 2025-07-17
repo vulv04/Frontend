@@ -6,17 +6,18 @@ import FAQPage from "../pages/client/FAQPage";
 import TermsPage from "../pages/client/TermsPage";
 import PrivacyPage from "../pages/client/PrivacyPage";
 import ProductListPage from "../pages/client/ProductListPage";
-import ProductDetailPage from "../pages/client/ProductDetailPage";
-import CategoryPage from "../pages/client/CategoryPage";
+import ProductDetailPage from "../components/products/ProductDetailPage";
 import CartPage from "../pages/client/CartPage";
 import CheckoutPage from "../pages/client/CheckoutPage";
-import CheckoutSuccessPage from "../pages/client/CheckoutSuccessPage";
+import CheckoutSuccessPage from "../components/checkout/CheckoutSuccessPage";
 import BlogListPage from "../pages/client/BlogListPage";
-import BlogDetailPage from "../pages/client/BlogDetailPage";
 import OrderPage from "../pages/client/OrderPage";
 import WishListProductPage from "../pages/client/WishListProductPage";
 import NewsPage from "../pages/client/NewsPage";
 import ShopPage from "../pages/client/ShopPage";
+import BlogDetailPage from "../components/blogs/BlogDetailPage";
+import CategoriesPage from "../pages/client/CategoriesPage";
+import OrderHistoryPage from "../components/orders/OrderHistoryPage";
 
 export const clientRoutes = [
   // common
@@ -32,8 +33,7 @@ export const clientRoutes = [
   // products & categories
   { path: "products", element: <ProductListPage /> },
   { path: "products/:id", element: <ProductDetailPage /> },
-  { path: "categories", element: <CategoryPage /> },
-
+  { path: "categories", element: <CategoriesPage /> },
 
   // cart & checkout
   { path: "cart", element: <CartPage /> },
@@ -49,4 +49,7 @@ export const clientRoutes = [
   { path: "/me/profile/:id", element: <ProfilePage /> },
   { path: "me/orders", element: <OrderPage /> },
   { path: "me/wishlist", element: <WishListProductPage /> },
+
+  //order
+  { path: "order", element: <OrderHistoryPage /> },
 ];

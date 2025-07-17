@@ -1,8 +1,9 @@
-import React from "react";
-import { FiTrash2 } from "react-icons/fi";
-
 const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
   const { productId, color, size, quantity } = item;
+
+  // Nếu không có productId (null), thì không render
+  if (!productId) return null;
+
   const { name, price, images } = productId;
 
   const formatCurrency = (num) =>
@@ -12,7 +13,7 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
     <tr>
       {/* Cột: Thông tin sản phẩm */}
       <td>
-        <div className="d-flex align-items-center gap-3">
+        <div className="d-flex align-items-center gap-4">
           <img
             src={images?.[0]}
             alt={name}
@@ -67,5 +68,3 @@ const CartItem = ({ item, onRemove, onIncrease, onDecrease }) => {
     </tr>
   );
 };
-
-export default CartItem;

@@ -1,44 +1,133 @@
 import React, { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   createProduct,
   getProductById,
   updateProduct,
 } from "../../api/productApi";
-import { message } from "antd";
+import { getVariants, createVariant } from "../../api/variantApi";
+import { getCategories } from "../../api/category";
+import { message, Select } from "antd";
 
 const ProductFormPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const isEdit = Boolean(id);
-
+  const navigate = useNavigate();
   const {
     register,
-    control,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
-  } = useForm({ defaultValues: { variants: [], images: [] } });
+  } = useForm({ defaultValues: { images: [], variants: [], category: "" } });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "variants",
+  const [variants, setVariants] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [newVariant, setNewVariant] = useState({
+    color: "",
+    sizes: "",
+    stock: "",
   });
-
   const [imageMode, setImageMode] = useState("url");
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
+  const selectedVariants = watch("variants");
 
-  // Gửi form
+  const fetchVariants = async () => {
+    try {
+      const res = await getVariants();
+      setVariants(res.data.variants || res.data);
+    } catch {
+      message.error("Lỗi khi tải biến thể");
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await getCategories();
+      const rawCategories = Array.isArray(res.data)
+        ? res.data
+        : res.data.categories || res.data.data || [];
+      const formatted = (rawCategories || []).map((cat) => ({
+        label: cat.title,
+        value: cat.title,
+      }));
+      setCategories(formatted);
+    } catch (err) {
+      console.error(err);
+      message.error("Lỗi khi tải danh mục");
+    }
+  };
+
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "unsigned_preset");
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dx1r7axdz/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.secure_url) {
+        throw new Error(data.error?.message || "Upload failed");
+      }
+      return data.secure_url;
+    } catch (err) {
+      message.error(`Upload ảnh thất bại: ${err.message}`);
+      throw err;
+    }
+  };
+
+  const fetchProduct = async () => {
+    try {
+      const res = await getProductById(id);
+      const product = res.data;
+
+      if (Array.isArray(product.images)) {
+        setValue("images", product.images.join(", "));
+      }
+
+      setValue(
+        "variants",
+        product.variants.map((v) => (typeof v === "string" ? v : v._id))
+      );
+      reset(product);
+    } catch {
+      message.error("Không thể tải sản phẩm");
+    }
+  };
+
+  useEffect(() => {
+    fetchVariants();
+    fetchCategories();
+    if (isEdit) fetchProduct();
+  }, [id]);
+
   const onSubmit = async (data) => {
     try {
       if (typeof data.images === "string") {
         data.images = data.images
           .split(",")
           .map((url) => url.trim())
-          .filter((url) => url);
+          .filter(Boolean);
       }
+
+      if (imageFiles.length > 0) {
+        const uploaded = await Promise.all(
+          imageFiles.map((file) => uploadToCloudinary(file))
+        );
+        data.images = [...data.images, ...uploaded];
+      }
+
+      data.variants = selectedVariants.map((v) =>
+        typeof v === "string" ? v : v._id
+      );
 
       if (isEdit) {
         await updateProduct(id, data);
@@ -47,133 +136,85 @@ const ProductFormPage = () => {
         await createProduct(data);
         message.success("Tạo sản phẩm thành công");
       }
+
       navigate("/admin/products");
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi khi lưu sản phẩm");
-      console.error(error.response?.data || error.message);
     }
   };
 
-  // Lấy dữ liệu khi edit
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await getProductById(id);
-        const product = res.data;
+  const handleAddVariant = async () => {
+    if (selectedVariants.length > 0) {
+      return message.warning("Bạn đã chọn biến thể, không cần nhập mới.");
+    }
 
-        if (typeof product.images === "string") {
-          product.images = product.images.split(",").map((url) => url.trim());
-        }
-        
-        reset(product); // reset toàn bộ form
-        if (Array.isArray(product.images)) {
-          setSelectedFiles(product.images);
-        }
-      } catch (err) {
-        message.error("Không thể tải sản phẩm để chỉnh sửa");
-        console.error(err);
+    const { color, sizes, stock } = newVariant;
+    if (!color || !sizes || !stock) {
+      return message.warning("Vui lòng điền đủ thông tin biến thể");
+    }
+
+    const sizeList = sizes
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    try {
+      for (const size of sizeList) {
+        await createVariant({ color, size, stock });
       }
-    };
-
-    if (isEdit) fetchProduct();
-  }, [id, isEdit, reset]);
-
-  const handleImageFiles = (e) => {
-    const files = Array.from(e.target.files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setSelectedFiles(urls);
-    setValue("images", urls); // gán preview
+      message.success("Tạo biến thể thành công");
+      await fetchVariants();
+      setNewVariant({ color: "", sizes: "", stock: "" });
+    } catch {
+      message.error("Tạo biến thể thất bại");
+    }
   };
 
-  const categoryOptions = [
-    "Áo thun",
-    "Áo sơ mi",
-    "Áo khoác",
-    "Quần jeans",
-    "Quần short",
-    "Đầm/Váy",
-    "Giày dép",
-    "Phụ kiện",
-  ];
-
   return (
-    <div className="container">
-      <h2 className="mb-4">{isEdit ? "Cập nhật" : "Thêm"} sản phẩm</h2>
+    <div className="container py-4">
+      <h2>{isEdit ? "Cập nhật" : "Thêm"} sản phẩm</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Tên sản phẩm */}
         <div className="mb-3">
-          <label className="form-label">Tên sản phẩm</label>
+          <label>Tên sản phẩm</label>
           <input
-            type="text"
-            className={`form-control ${errors.title ? "is-invalid" : ""}`}
-            {...register("title", {
-              required: "Tên sản phẩm không được để trống",
-            })}
+            className="form-control"
+            {...register("title", { required: true })}
           />
-          {errors.title && (
-            <div className="invalid-feedback">{errors.title.message}</div>
-          )}
         </div>
 
-        {/* Giá */}
         <div className="mb-3">
-          <label className="form-label">Giá</label>
+          <label>Slug</label>
+          <input
+            className="form-control"
+            {...register("slug", { required: true })}
+          />
+        </div>
+
+        <div className="mb-3">
+          <label>Giá</label>
           <input
             type="number"
-            className={`form-control ${errors.price ? "is-invalid" : ""}`}
-            {...register("price", {
-              required: "Giá là bắt buộc",
-              min: { value: 0, message: "Giá không được âm" },
-            })}
-          />
-          {errors.price && (
-            <div className="invalid-feedback">{errors.price.message}</div>
-          )}
-        </div>
-
-        {/* Mô tả */}
-        <div className="mb-3">
-          <label className="form-label">Mô tả</label>
-          <textarea
             className="form-control"
-            rows="4"
-            {...register("description")}
+            {...register("price", { required: true })}
           />
         </div>
 
-        {/* Ảnh sản phẩm */}
         <div className="mb-3">
-          <label className="form-label">Ảnh sản phẩm</label>
-          <div className="d-flex gap-4 mb-2">
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="imageMode"
-                value="url"
-                checked={imageMode === "url"}
-                onChange={() => setImageMode("url")}
-              />
-              <label className="form-check-label">Dán URL ảnh</label>
-            </div>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="imageMode"
-                value="file"
-                checked={imageMode === "file"}
-                onChange={() => setImageMode("file")}
-              />
-              <label className="form-check-label">Chọn từ máy</label>
-            </div>
-          </div>
-
+          <label>Ảnh sản phẩm</label>
+          <Select
+            defaultValue={imageMode}
+            onChange={setImageMode}
+            style={{ width: 150, marginBottom: 10 }}
+            options={[
+              { label: "URL", value: "url" },
+              { label: "File", value: "file" },
+            ]}
+          />
           {imageMode === "url" ? (
             <input
-              type="text"
               className="form-control"
-              placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
+              placeholder="URLs cách nhau bởi dấu phẩy"
               {...register("images")}
             />
           ) : (
@@ -182,130 +223,84 @@ const ProductFormPage = () => {
               className="form-control"
               multiple
               accept="image/*"
-              onChange={handleImageFiles}
+              onChange={(e) => setImageFiles([...e.target.files])}
             />
           )}
-
-          {selectedFiles.length > 0 && (
-            <div className="mt-2">
-              {selectedFiles.map((url, idx) => (
-                <img
-                  key={idx}
-                  src={url}
-                  alt="preview"
-                  style={{ height: "60px", marginRight: "8px" }}
-                />
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Danh mục */}
         <div className="mb-3">
-          <label className="form-label">Danh mục</label>
-          <select className="form-control" {...register("category")}>
-            <option value="">Chọn danh mục</option>
-            {categoryOptions.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Giới tính */}
-        <div className="mb-3">
-          <label className="form-label">Giới tính</label>
-          <select className="form-control" {...register("gender")}>
-            <option value="">Không chọn</option>
-            <option value="Nam">Nam</option>
-            <option value="Nữ">Nữ</option>
-            <option value="Unisex">Unisex</option>
-          </select>
-        </div>
-
-        {/* Slug */}
-        <div className="mb-3">
-          <label className="form-label">Slug</label>
-          <input
-            className={`form-control ${errors.slug ? "is-invalid" : ""}`}
-            {...register("slug", { required: "Slug không được để trống" })}
+          <label>Danh mục</label>
+          <Select
+            style={{ width: "100%" }}
+            options={categories}
+            value={watch("category")}
+            onChange={(val) => setValue("category", val)}
           />
-          {errors.slug && (
-            <div className="invalid-feedback">{errors.slug.message}</div>
-          )}
         </div>
 
-        {/* Biến thể sản phẩm */}
-        <hr className="my-4" />
-        <h4>Biến thể sản phẩm</h4>
-        {fields.map((item, index) => (
-          <div key={item.id} className="border rounded p-3 mb-3">
+        <div className="mb-3">
+          <label>Chọn biến thể</label>
+          <Select
+            mode="multiple"
+            style={{ width: "100%" }}
+            value={selectedVariants}
+            onChange={(value) => setValue("variants", value)}
+            options={variants.map((variant) => ({
+              label: `${variant.color} - ${variant.size} (Tồn: ${variant.stock})`,
+              value: variant._id,
+            }))}
+          />
+        </div>
+
+        {selectedVariants.length === 0 && (
+          <div className="mb-3 border-top pt-3">
+            <h5>+ Thêm biến thể mới</h5>
             <div className="row g-2">
               <div className="col-md-3">
                 <input
                   type="text"
+                  placeholder="Màu sắc"
                   className="form-control"
-                  placeholder="Màu"
-                  {...register(`variants.${index}.color`, { required: true })}
+                  value={newVariant.color}
+                  onChange={(e) =>
+                    setNewVariant({ ...newVariant, color: e.target.value })
+                  }
                 />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Size"
-                  {...register(`variants.${index}.size`, { required: true })}
-                />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className={`form-control ${
-                    errors.variants?.[index]?.stock ? "is-invalid" : ""
-                  }`}
-                  placeholder="Tồn kho"
-                  {...register(`variants.${index}.stock`, {
-                    required: true,
-                    min: { value: 0, message: "Tồn kho không được âm" },
-                  })}
-                />
-                {errors.variants?.[index]?.stock && (
-                  <div className="invalid-feedback">
-                    {errors.variants[index].stock.message}
-                  </div>
-                )}
               </div>
               <div className="col-md-3">
                 <input
                   type="text"
+                  placeholder="Kích thước (cách nhau bởi dấu phẩy)"
                   className="form-control"
-                  placeholder="SKU"
-                  {...register(`variants.${index}.sku`)}
+                  value={newVariant.sizes}
+                  onChange={(e) =>
+                    setNewVariant({ ...newVariant, sizes: e.target.value })
+                  }
                 />
               </div>
-              <div className="col-md-2 text-end">
+              <div className="col-md-3">
+                <input
+                  type="number"
+                  placeholder="Tồn kho"
+                  className="form-control"
+                  value={newVariant.stock}
+                  onChange={(e) =>
+                    setNewVariant({ ...newVariant, stock: e.target.value })
+                  }
+                />
+              </div>
+              <div className="col-md-3">
                 <button
                   type="button"
-                  className="btn btn-danger"
-                  onClick={() => remove(index)}
+                  className="btn btn-outline-success w-100"
+                  onClick={handleAddVariant}
                 >
-                  Xoá
+                  Tạo biến thể
                 </button>
               </div>
             </div>
           </div>
-        ))}
-
-        <div className="mb-3">
-          <button
-            type="button"
-            className="btn btn-outline-primary"
-            onClick={() => append({ color: "", size: "", stock: 0, sku: "" })}
-          >
-            ➕ Thêm biến thể
-          </button>
-        </div>
+        )}
 
         <button type="submit" className="btn btn-primary">
           {isEdit ? "Cập nhật" : "Thêm"} sản phẩm

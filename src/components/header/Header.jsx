@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import ToggleTheme from "./ToggleTheme";
-import { useLanguage } from "../contexts/LanguageContext";
-import translations from "../i18n/lang";
+import { useLanguage } from "../../contexts/LanguageContext";
+import translations from "../../i18n/lang";
 import styled from "@emotion/styled";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import {
@@ -13,7 +12,7 @@ import {
   FiShoppingBag,
 } from "react-icons/fi";
 import { message } from "antd";
-import CartDropdown from "./CartDropdown";
+import CartDropdown from "../carts/CartDropdown";
 const StyledNavLink = styled(RouterNavLink)`
   position: relative;
   display: inline-block;

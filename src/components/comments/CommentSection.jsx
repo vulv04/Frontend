@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { createComment, getCommentsByProductId } from "../api/comment";
+import { FaStar } from "react-icons/fa";
 
 const CommentSection = ({ productId }) => {
   const [comments, setComments] = useState([]);
   const [form, setForm] = useState({ content: "" });
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-
   const fetchComments = async () => {
     try {
-      const res = await getCommentsByProductId(productId); // ✔ Đúng API
+      const res = await getCommentsByProductId(productId);
       setComments(res.data);
     } catch (error) {
       console.error("Lỗi khi tải bình luận:", error);
@@ -27,21 +28,23 @@ const CommentSection = ({ productId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!user) return alert("Bạn phải đăng nhập để bình luận!");
     if (!form.content.trim()) return alert("Vui lòng nhập nội dung bình luận.");
+    if (rating === 0) return alert("Vui lòng chọn số sao đánh giá.");
 
     try {
-        await createComment(
-          {
-            productId,
-            userId: user._id,
-            author: user.fullname,
-            content: form.content,
-          },
-          user.token // thêm token nếu cần xác thực
-        );
+      await createComment(
+        {
+          productId,
+          userId: user._id,
+          author: user.fullname,
+          content: form.content,
+          rating,
+        },
+        user.token
+      );
       setForm({ content: "" });
+      setRating(0);
       fetchComments();
     } catch (error) {
       console.error("Lỗi khi gửi bình luận:", error);
@@ -65,6 +68,33 @@ const CommentSection = ({ productId }) => {
                 placeholder="Nhập bình luận..."
               ></textarea>
             </div>
+
+            <div className="mb-3">
+              {[...Array(5)].map((_, index) => {
+                const current = index + 1;
+                return (
+                  <label key={index}>
+                    <input
+                      type="radio"
+                      name="rating"
+                      value={current}
+                      onClick={() => setRating(current)}
+                      className="d-none"
+                    />
+                    <FaStar
+                      color={
+                        current <= (hover || rating) ? "#ffc107" : "#e4e5e9"
+                      }
+                      size={24}
+                      onMouseEnter={() => setHover(current)}
+                      onMouseLeave={() => setHover(null)}
+                      style={{ cursor: "pointer", marginRight: 4 }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+
             <button className="btn btn-primary" type="submit">
               Gửi bình luận
             </button>
@@ -80,8 +110,17 @@ const CommentSection = ({ productId }) => {
         <ul className="list-group">
           {comments.map((comment) => (
             <li key={comment._id} className="list-group-item">
-              <strong>{comment.author}</strong> <br />
-              <span>{comment.content}</span> <br />
+              <strong>{comment.author}</strong>
+              <div>
+                {[...Array(5)].map((_, i) => (
+                  <FaStar
+                    key={i}
+                    color={i < comment.rating ? "#ffc107" : "#e4e5e9"}
+                    size={16}
+                  />
+                ))}
+              </div>
+              <div>{comment.content}</div>
               <small className="text-muted">
                 {new Date(comment.createdAt).toLocaleString()}
               </small>

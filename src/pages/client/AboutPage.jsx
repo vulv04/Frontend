@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "../../api/productApi";
-import Breadcrumb from "../../components/Breadcrumb";
+import Breadcrumb from "../../components/carts/Breadcrumb";
 
 const AboutPage = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +12,7 @@ const AboutPage = () => {
       try {
         setLoading(true);
         const res = await getProducts();
-        setProducts(res.data.products || res.data);
+        setProducts(res.data.data);
       } catch (err) {
         setError(err.message || "Không thể tải sản phẩm");
       } finally {

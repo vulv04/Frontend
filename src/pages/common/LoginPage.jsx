@@ -7,8 +7,8 @@ import { loginApi } from "../../api/authApi";
 import { loginSchema } from "../../Validation/authSchema";
 import styled from "@emotion/styled";
 import { message } from "antd";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
+import Header from "../../components/header/Header";
+import Footer from "../../components/footer/Footer";
 import SocialLoginButtons from "../../components/SocialLoginButtons";
 
 const Background = styled.div`

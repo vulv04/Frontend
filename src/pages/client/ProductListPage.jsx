@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { getProducts } from "../../api/productApi";
-import ProductCard from "../../components/ProductCard";
+import ProductCard from "../../components/products/ProductCard";
 import ProductQuickView from "../../components/QuickViewModal";
+import { getProducts } from "../../api/productApi";
 
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);

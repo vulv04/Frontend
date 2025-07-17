@@ -4,7 +4,7 @@ import NotFoundPage from "../pages/common/NotFoundPage";
 import AdminLayout from "../layouts/AdminLayout";
 import { clientRoutes } from "./clientRoutes";
 import { adminRoutes } from "./adminRoutes";
-import ProtectedRoute from "../components/ProtecedRoute";
+import ProtectedRoute from "../components/users/ProtecedRoute";
 import LoginPage from "../pages/common/LoginPage";
 import RegisterPage from "../pages/common/RegisterPage";
 import VerifyEmail from "../pages/common/VerifyEmail";
