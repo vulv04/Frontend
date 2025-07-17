@@ -6,7 +6,7 @@ import {
   FaEye,
   FaHeart,
 } from "react-icons/fa";
-import "../assets/css/ProductCard.css";
+import "../../assets/css/ProductCard.css";
 
 const ProductCard = ({
   title,
@@ -101,19 +101,21 @@ const ProductCard = ({
         </div>
 
         {variants?.length > 0 && (
-          <div className="d-flex gap-1 mb-2">
-            {variants.map((color, idx) => (
-              <span
-                key={idx}
-                style={{
-                  backgroundColor: color,
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  border: "1px solid #ccc",
-                }}
-              ></span>
-            ))}
+          <div className="d-flex gap-1 mt-2">
+            {Array.from(new Set(variants.map((v) => v.color))).map(
+              (color, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: color,
+                    width: 15,
+                    height: 15,
+                    borderRadius: "50%",
+                    border: "1px solid #ccc",
+                  }}
+                ></div>
+              )
+            )}
           </div>
         )}
 

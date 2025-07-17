@@ -1,92 +1,144 @@
 import React, { useEffect, useState } from "react";
-import { getProducts } from "../../api/productApi";
-import { message } from "antd";
+import { getVariants, deleteVariant } from "../../api/variantApi";
+import { message, Spin, Tag, Button, Popconfirm } from "antd";
 
 const ProductVariantsPage = () => {
-  const [products, setProducts] = useState([]);
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [activeOnly, setActiveOnly] = useState(false);
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    fetchVariants();
+  }, []);
+
+  const fetchVariants = async () => {
     try {
-      const res = await getProducts();
-      setProducts(res.data.products || res.data);
-    } catch (error) {
-      message.error("Không thể tải danh sách sản phẩm");
+      setLoading(true);
+      const res = await getVariants();
+      setVariants(res.data.variants || res.data || []);
+    } catch (err) {
+      message.error("Lỗi khi tải danh sách biến thể!");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const handleDelete = async (id) => {
+    try {
+      await deleteVariant(id);
+      if (window.confirm("Xóa biến thể nây?")) {
+        message.success("Xóa biến thể thành công!");
+      }
+      setVariants((prev) => prev.filter((v) => v._id !== id));
+    } catch (err) {
+      console.error(err);
+      message.error("Xóa thất bại");
+    }
+  };
 
-  const filtered = products.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = variants.filter((v) => {
+    const matchSearch =
+      v.sku?.toLowerCase().includes(search.toLowerCase()) ||
+      v.color?.toLowerCase().includes(search.toLowerCase()) ||
+      v.size?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = activeOnly ? v.isActive : true;
+    return matchSearch && matchStatus;
+  });
 
   return (
     <div className="container py-4">
-      <h2>Biến thể sản phẩm</h2>
+      <h2 className="mb-4">🧩 Danh sách biến thể sản phẩm</h2>
 
-      {/* Tìm kiếm */}
-      <div className="mb-3">
-        <input
-          type="text"
-          placeholder="Tìm theo tên sản phẩm..."
-          className="form-control"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="row g-3 mb-4">
+        <div className="col-md-6">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Tìm theo SKU, màu, size..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="col-md-3">
+          <label>
+            <input
+              type="checkbox"
+              className="form-check-input me-2"
+              checked={activeOnly}
+              onChange={(e) => setActiveOnly(e.target.checked)}
+            />
+            Chỉ hiển thị biến thể đang hoạt động
+          </label>
+        </div>
       </div>
 
-      {/* Danh sách biến thể */}
-      <div className="accordion" id="variantAccordion">
-        {filtered.map((product) => (
-          <div className="accordion-item" key={product._id}>
-            <h2 className="accordion-header">
-              <button
-                className="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target={`#collapse-${product._id}`}
-              >
-                {product.title}
-              </button>
-            </h2>
-            <div
-              id={`collapse-${product._id}`}
-              className="accordion-collapse collapse"
-              data-bs-parent="#variantAccordion"
-            >
-              <div className="accordion-body">
-                {product.variants && product.variants.length > 0 ? (
-                  <table className="table table-bordered">
-                    <thead>
-                      <tr>
-                        <th>Màu</th>
-                        <th>Size</th>
-                        <th>Tồn kho</th>
-                        <th>SKU</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {product.variants.map((variant, idx) => (
-                        <tr key={idx}>
-                          <td>{variant.color}</td>
-                          <td>{variant.size}</td>
-                          <td>{variant.stock}</td>
-                          <td>{variant.sku}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-muted">Không có biến thể nào.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-5">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <table className="table table-bordered text-center align-middle">
+          <thead className="table-light">
+            <tr>
+              <th>SKU</th>
+              <th>Màu</th>
+              <th>Size</th>
+              <th>Giá</th>
+              <th>Kho</th>
+              <th>Ảnh</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((v) => (
+              <tr key={v._id}>
+                <td>{v.sku}</td>
+                <td>{v.color}</td>
+                <td>{v.size}</td>
+                <td>{v.price?.toLocaleString()}₫</td>
+                <td>{v.stock}</td>
+                <td>
+                  <img
+                    src={v.images?.[0] || "/no-image.jpg"}
+                    alt="Variant"
+                    style={{ width: 60, height: 60, objectFit: "cover" }}
+                    className="img-thumbnail"
+                    onError={(e) => (e.target.src = "/no-image.jpg")}
+                  />
+                </td>
+                <td>
+                  {v.isActive ? (
+                    <Tag color="green">Đang hoạt động</Tag>
+                  ) : (
+                    <Tag color="red">Ngưng hoạt động</Tag>
+                  )}
+                </td>
+                <td>
+                  <Popconfirm
+                    title="Xóa biến thể này?"
+                    onConfirm={() => handleDelete(v._id)}
+                    okText="Xóa"
+                    cancelText="Hủy"
+                  >
+                    <Button danger size="small">
+                      Xóa
+                    </Button>
+                  </Popconfirm>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan="8" className="text-muted">
+                  Không tìm thấy biến thể nào.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

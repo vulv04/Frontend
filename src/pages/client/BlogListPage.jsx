@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "../../api/productApi";
-import Breadcrumb from "../../components/Breadcrumb";
+import Breadcrumb from "../../components/carts/Breadcrumb";
 
 // Component thẻ bài viết blog
 const BlogCard = ({ title, description, image, date }) => (
@@ -36,7 +36,6 @@ const BlogListPage = () => {
         setLoading(true);
         setError(null);
         const res = await getProducts();
-        const products = res.data.products || res.data;
 
         // Giả lập sản phẩm thành bài viết
         const blogPosts = products.map((p) => ({

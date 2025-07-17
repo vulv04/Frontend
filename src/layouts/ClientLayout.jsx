@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "../components/Header";
+import Header from "../components/header/Header";
 import { Outlet } from "react-router-dom";
-import Footer from "../components/Footer";
+import Footer from "../components/footer/Footer";
 import AutoScrollToTop from "../contexts/AutoScrollToTop";
 import { useLanguage } from "../contexts/LanguageContext";
 import FloatingLangMenu from "../components/FloatingLangMenu";

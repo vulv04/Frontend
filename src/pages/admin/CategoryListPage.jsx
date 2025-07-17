@@ -95,7 +95,7 @@ const CategoryListPage = () => {
                   </td>
                   <td>
                     <Link
-                      to={`/categories/edit/${cat._id}`}
+                      to={`/admin/categories/edit/${cat._id}`}
                       className="btn btn-sm btn-warning me-2"
                     >
                       Sửa

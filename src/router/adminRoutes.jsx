@@ -12,6 +12,13 @@ import BlogFormPage from "../pages/admin/BlogFormPage";
 import DashBoardPage from "../pages/admin/DashBoardPage";
 import OrderListPage from "../pages/admin/OrderListPage";
 import ProductVariantsPage from "../pages/admin/ProductVariantsPage";
+import VariantFormPage from "../components/Variant/VariantFormPage";
+import ProductDetailPage from "../pages/admin/ProductDetailPage";
+import ProductTrashPage from "../pages/admin/ProductTrashPage";
+import BannerPage from "../pages/admin/BannerPage";
+import BrandsPage from "../pages/admin/BrandsPage";
+import BrandsFormPage from "../components/brands/BrandsFormPage";
+import BannerFormPage from "../components/banner/BannerFormPage";
 export const adminRoutes = [
   { index: true, element: <DashBoardPage /> },
   { path: "settings", element: <SettingsPage /> },
@@ -19,9 +26,10 @@ export const adminRoutes = [
 
   // * Products routes
   { path: "products", element: <ProductListPage /> },
+  { path: "products/:id", element: <ProductDetailPage /> },
   { path: "products/edit/:id", element: <ProductFormPage /> },
   { path: "products/add", element: <ProductFormPage /> },
-
+  { path: "/admin/products/trash", element: <ProductTrashPage /> },
   // * Categories routes
   { path: "categories", element: <CategoryListPage /> },
   { path: "categories/edit/:id", element: <CategoryFormPage /> },
@@ -43,6 +51,17 @@ export const adminRoutes = [
   { path: "blogs/edit/:id", element: <BlogFormPage /> },
   { path: "blogs/add", element: <BlogFormPage /> },
 
-  // Biến thể
+  // * Biến thể
   { path: "variants", element: <ProductVariantsPage /> },
+  { path: "variants/add", element: <VariantFormPage /> },
+
+  // * Banners
+  { path: "banners", element: <BannerPage /> },
+  { path: "banners/add", element: <BannerFormPage /> },
+  { path: "banners/edit/:id", element: <BannerFormPage /> },
+
+  // * Brands
+  { path: "brands", element: <BrandsPage /> },
+  { path: "brands/add", element: <BrandsFormPage /> },
+  { path: "brands/edit/:id", element: <BrandsFormPage /> },
 ];

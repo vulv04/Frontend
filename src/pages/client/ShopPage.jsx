@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import SidebarFilter from "../../components/SidebarFilter";
+import SidebarFilter from "../../components/sidebar/SidebarFilter";
 import Pagination from "../../components/Pagination";
-import ProductCard from "../../components/ProductCard";
+import ProductCard from "../../components/products/ProductCard";
 import { getProducts } from "../../api/productApi";
-import Breadcrumb from "../../components/Breadcrumb";
+import Breadcrumb from "../../components/carts/Breadcrumb";
 import { Link } from "react-router-dom";
 
 const ShopPage = () => {
@@ -25,12 +25,22 @@ const ShopPage = () => {
         category: filters.category,
         brand: filters.brand,
       });
-      console.log(res);
-      setProducts(res.data);
-      const total = res.headers["x-total-count"];
+
+      console.log("✅ Dữ liệu từ API:", res.data);
+
+      // Fix lỗi .map bằng cách đảm bảo luôn là mảng
+      const productList = Array.isArray(res.data)
+        ? res.data
+        : res.data.products || res.data.data || [];
+
+      setProducts(productList);
+
+      const total =
+        res.headers["x-total-count"] || res.data.total || productList.length;
+
       setTotalPages(Math.ceil(total / 6));
     } catch (err) {
-      console.error("Lỗi khi fetch sản phẩm:", err);
+      console.error("❌ Lỗi khi fetch sản phẩm:", err);
     }
   };
 
@@ -62,22 +72,31 @@ const ShopPage = () => {
         <div className="col-md-9">
           <h1>Sản phẩm</h1>
           <div className="row">
-            {products.map((product) => (
-              <div className="col-sm-6 col-md-4 mb-4">
-                <Link
-                  to={`/products/${product._id || product.id}`}
-                  className="text-decoration-none text-dark"
+            {Array.isArray(products) && products.length > 0 ? (
+              products.map((product) => (
+                <div
+                  className="col-sm-6 col-md-4 mb-4"
+                  key={product._id || product.id}
                 >
-                  <ProductCard
-                    title={product.title}
-                    description={product.description}
-                    image={product.thumbnail || product.images?.[0] || ""}
-                    price={product.price}
-                    onAddToCart={() => handleAddToCart(_id || id)}
-                  />
-                </Link>
-              </div>
-            ))}
+                  <Link
+                    to={`/products/${product._id || product.id}`}
+                    className="text-decoration-none text-dark"
+                  >
+                    <ProductCard
+                      title={product.title}
+                      description={product.description}
+                      image={product.thumbnail || product.images?.[0] || ""}
+                      price={product.price}
+                      onAddToCart={() =>
+                        handleAddToCart(product._id || product.id)
+                      }
+                    />
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <p>Không có sản phẩm nào.</p>
+            )}
           </div>
 
           <Pagination
