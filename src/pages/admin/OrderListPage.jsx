@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getAllOrders, updateOrderStatus } from "../../api/orderApi";
 import { message, Select, Tag, Spin } from "antd";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { getAllOrders, updateOrderStatus } from "../../api/orderApi";
 
 const statusOptions = [
   "pending",
@@ -11,6 +11,7 @@ const statusOptions = [
   "completed",
   "cancelled",
 ];
+
 const statusColorMap = {
   pending: "default",
   processing: "blue",
@@ -29,7 +30,7 @@ const OrderListPage = () => {
     setLoading(true);
     try {
       const res = await getAllOrders({ status: filter });
-      setOrders(res.data?.data || []);
+      setOrders(res.data || []);
     } catch (err) {
       message.error("Không thể tải danh sách đơn hàng");
     } finally {
@@ -53,7 +54,7 @@ const OrderListPage = () => {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-3">📦 Quản lý đơn hàng</h2>
+      <h2 className="mb-3">Quản lý đơn hàng</h2>
 
       <div className="mb-3 d-flex align-items-center gap-2">
         <span>Lọc theo trạng thái:</span>
@@ -78,16 +79,20 @@ const OrderListPage = () => {
                 <th>Khách hàng</th>
                 <th>Ngày đặt</th>
                 <th>Trạng thái</th>
+                <th>Thanh toán</th>
                 <th>Tổng tiền</th>
                 <th>Sản phẩm</th>
+                <th>Thông tin giao hàng</th>
                 <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order._id}>
-                  <td>{order.code || order._id.slice(-6).toUpperCase()}</td>
-                  <td>{order.user?.name || "N/A"}</td>
+                  <td>
+                    {order.orderCode || order._id.slice(-6).toUpperCase()}
+                  </td>
+                  <td>{order.shippingAddress?.fullName || "N/A"}</td>
                   <td>{dayjs(order.createdAt).format("DD/MM/YYYY HH:mm")}</td>
                   <td>
                     <Select
@@ -104,13 +109,52 @@ const OrderListPage = () => {
                       {order.status}
                     </Tag>
                   </td>
-                  <td>{order.totalPrice.toLocaleString()}₫</td>
                   <td>
-                    {order.items?.map((item, idx) => (
+                    {order.isPaid ? (
+                      <Tag color="green">Đã thanh toán</Tag>
+                    ) : (
+                      <Tag color="orange">Chưa thanh toán</Tag>
+                    )}
+                    <br />
+                    <Tag
+                      color={
+                        order.paymentMethod === "PayOS" ? "purple" : "cyan"
+                      }
+                    >
+                      {order.paymentMethod || "COD"}
+                    </Tag>
+                  </td>
+                  <td>{order.totalPrice?.toLocaleString()}₫</td>
+                  <td>
+                    {order.orderItems?.map((item, idx) => (
                       <div key={idx}>
                         {item.name} x {item.quantity}
                       </div>
                     ))}
+                  </td>
+                  <td>
+                    <p>
+                      <strong>Họ tên:</strong> {order.shippingAddress?.fullName}
+                    </p>
+                    <p>
+                      <strong>SĐT:</strong> {order.shippingAddress?.phone}
+                    </p>
+                    <p>
+                      <strong>Địa chỉ:</strong>{" "}
+                      {[
+                        order.shippingAddress?.detail,
+                        order.shippingAddress?.ward,
+                        order.shippingAddress?.district,
+                        order.shippingAddress?.province,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                    {order.shippingAddress?.note && (
+                      <p>
+                        <strong>Ghi chú:</strong> {order.shippingAddress.note}
+                      </p>
+                    )}
                   </td>
                   <td>
                     <button
@@ -122,6 +166,13 @@ const OrderListPage = () => {
                   </td>
                 </tr>
               ))}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan="9" className="text-center">
+                    Không có đơn hàng nào.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

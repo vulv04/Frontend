@@ -12,9 +12,12 @@ const AboutPage = () => {
       try {
         setLoading(true);
         const res = await getProducts();
-        setProducts(res.data.data);
+        const data = res.data?.data;
+        setProducts(Array.isArray(data) ? data : []); // đảm bảo luôn là mảng
       } catch (err) {
-        setError(err.message || "Không thể tải sản phẩm");
+        setError(
+          err.response?.data?.message || err.message || "Không thể tải sản phẩm"
+        );
       } finally {
         setLoading(false);
       }
@@ -27,6 +30,7 @@ const AboutPage = () => {
       <div className="mb-3">
         <Breadcrumb items={[{ label: "Giới thiệu", link: "/about" }]} />
       </div>
+
       {/* Phần giới thiệu công ty */}
       <div className="row align-items-center mb-5">
         <div className="col-md-6 mb-4 mb-md-0">
@@ -64,21 +68,31 @@ const AboutPage = () => {
       <div>
         <h2 className="mb-4">Sản Phẩm Nổi Bật</h2>
 
-        {loading && <p>Đang tải sản phẩm...</p>}
+        {loading && (
+          <div className="text-center my-4">
+            <div className="spinner-border text-primary" role="status" />
+          </div>
+        )}
         {error && <p className="text-danger">Lỗi: {error}</p>}
 
-        {!loading && !error && products.length === 0 && (
-          <p>Không tìm thấy sản phẩm nào.</p>
-        )}
+        {!loading &&
+          !error &&
+          Array.isArray(products) &&
+          products.length === 0 && <p>Không tìm thấy sản phẩm nào.</p>}
 
         <div className="row">
           {!loading &&
             !error &&
+            Array.isArray(products) &&
             products.slice(0, 6).map((product) => (
-              <div key={product.id} className="col-md-4 mb-4">
+              <div key={product._id || product.id} className="col-md-4 mb-4">
                 <div className="card h-100 shadow-sm">
                   <img
-                    src={product.thumbnail || product.images?.[0]}
+                    src={
+                      product.thumbnail ||
+                      product.images?.[0] ||
+                      "https://via.placeholder.com/200"
+                    }
                     className="card-img-top"
                     alt={product.title}
                     style={{ height: "200px", objectFit: "cover" }}
@@ -90,7 +104,7 @@ const AboutPage = () => {
                     </p>
                     <div className="mt-auto">
                       <span className="fw-bold text-primary fs-5">
-                        {product.price.toLocaleString()}₫
+                        {product.price?.toLocaleString("vi-VN") || 0}₫
                       </span>
                     </div>
                   </div>

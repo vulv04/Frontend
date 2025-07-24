@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getProductById } from "../../api/productApi";
+import { getProductById } from "../../../api/productApi";
 import { Spin, message, Tag, Button } from "antd";
 
 const statusColorMap = {
@@ -69,13 +69,26 @@ const ProductDetailPage = () => {
         <div className="row g-0">
           <div className="col-md-5 text-center p-4">
             <img
-              src={product.images?.[0] || "/no-image.jpg"}
+              src={product.thumbnail || product.images?.[0] || "/no-image.jpg"}
               alt={product.title}
               className="img-fluid rounded"
               style={{ maxHeight: "400px", objectFit: "cover" }}
               onError={(e) => (e.target.src = "/no-image.jpg")}
             />
+            <div className="mt-3 d-flex flex-wrap gap-2 justify-content-center">
+              {product.images?.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={`Ảnh ${idx + 1}`}
+                  className="rounded"
+                  style={{ width: 60, height: 60, objectFit: "cover" }}
+                  onError={(e) => (e.target.src = "/no-image.jpg")}
+                />
+              ))}
+            </div>
           </div>
+
           <div className="col-md-7">
             <div className="card-body">
               <h3 className="card-title">{product.title}</h3>
@@ -83,10 +96,25 @@ const ProductDetailPage = () => {
                 Slug: <code>{product.slug}</code>
               </p>
               <p>
-                <strong>Giá:</strong> {product.price?.toLocaleString()}₫
+                <strong>Giá hiện tại:</strong> {product.price?.toLocaleString()}
+                ₫
               </p>
+              {product.oldPrice && product.oldPrice > product.price && (
+                <p>
+                  <strong>Giá cũ:</strong>{" "}
+                  <del>{product.oldPrice?.toLocaleString()}₫</del>
+                </p>
+              )}
+              {product.discountPercent && (
+                <p>
+                  <strong>Giảm giá:</strong> {product.discountPercent}%
+                </p>
+              )}
               <p>
                 <strong>Danh mục:</strong> {product.category || "Chưa rõ"}
+              </p>
+              <p>
+                <strong>Thương hiệu:</strong> {product.brand || "Chưa rõ"}
               </p>
               <p>
                 <strong>Trạng thái:</strong>{" "}

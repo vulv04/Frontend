@@ -1,32 +1,83 @@
-import React, { useEffect } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { message } from "antd";
+import { Spin, Result, Button } from "antd";
 
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [status, setStatus] = useState(null); // "success", "already", "error"
 
   useEffect(() => {
-    const token = new URLSearchParams(location.search).get("token");
-
-    if (token) {
-      axios
-        .get(`http://localhost:3000/api/auth/verify-email?token=${token}`)
-        .then((res) => {
-          message.success(res.data.message || "Xác thực thành công");
-          navigate("auth/login");
-        })
-        .catch((err) => {
-          message.error(
-            err.response?.data?.message ||
-              "Xác thực thất bại hoặc token không hợp lệ"
-          );
-        });
+    const statusParam = new URLSearchParams(location.search).get("status");
+console.log(statusParam);
+    if (!statusParam) {
+      setStatus("error");
+    } else {
+      setStatus(statusParam);
     }
-  }, [location, navigate]);
+  }, [location]);
 
-  return <div>Đang xác minh email...</div>;
+  const renderResult = () => {
+    switch (status) {
+      case "success":
+        return (
+          <Result
+            status="success"
+            title="🎉 Xác minh email thành công!"
+            subTitle="Bạn có thể đăng nhập vào hệ thống."
+            extra={[
+              <Button
+                type="primary"
+                key="login"
+                onClick={() => navigate("/api/auth/login")}
+              >
+                Đăng nhập ngay
+              </Button>,
+            ]}
+          />
+        );
+      case "already":
+        return (
+          <Result
+            status="info"
+            title="Email đã được xác minh trước đó"
+            extra={[
+              <Button
+                type="primary"
+                key="login"
+                onClick={() => navigate("/api/auth/login")}
+              >
+                Đăng nhập
+              </Button>,
+            ]}
+          />
+        );
+      case "error":
+      default:
+        return (
+          <Result
+            status="error"
+            title="Xác minh thất bại"
+            subTitle="Token không hợp lệ hoặc đã hết hạn."
+            extra={[
+              <Button type="default" key="home" onClick={() => navigate("/")}>
+                Về trang chủ
+              </Button>,
+            ]}
+          />
+        );
+    }
+  };
+
+  return (
+    <div style={{ padding: "2rem", textAlign: "center" }}>
+      {status === null ? (
+        <Spin size="large" tip="Đang xác minh email..." />
+      ) : (
+        renderResult()
+      )}
+    </div>
+  );
 };
 
 export default VerifyEmail;

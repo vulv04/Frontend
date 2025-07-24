@@ -6,12 +6,11 @@ import RecommendedProducts from "../../components/products/RecommendedProducts";
 import SpecialCollections from "./SpecialCollections";
 import { getProducts } from "../../api/productApi";
 import { useTranslation } from "react-i18next";
-import PopupAd from "../../components/PopupAd";
-import FloatingNotification from "../../components/FloatingNotification";
 import ProductCard from "../../components/products/ProductCard";
 import Banner from "../../components/banner/Banner";
 import { useNavigate } from "react-router-dom";
 import QuickViewModal from "../../components/QuickViewModal";
+import OneTimeComponents from "../../components/OneTimeComponents";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -95,8 +94,7 @@ const HomePage = () => {
           <p className="text-center">{t("no_products")}</p>
         )}
 
-        <FloatingNotification />
-        <PopupAd />
+        <OneTimeComponents />
 
         <div className="row">
           {!loading &&

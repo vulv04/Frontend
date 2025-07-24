@@ -16,3 +16,5 @@ export const hardDeleteProduct = (id) =>
   api.delete(`/api/products/${id}/force`);
 
 export const restoreProduct = (id) => api.patch(`/api/products/${id}/restore`);
+
+

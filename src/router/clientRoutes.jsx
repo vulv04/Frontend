@@ -17,7 +17,7 @@ import NewsPage from "../pages/client/NewsPage";
 import ShopPage from "../pages/client/ShopPage";
 import BlogDetailPage from "../components/blogs/BlogDetailPage";
 import CategoriesPage from "../pages/client/CategoriesPage";
-import OrderHistoryPage from "../components/orders/OrderHistoryPage";
+import OrderHistoryPage from "../pages/client/OrderHistoryPage";
 
 export const clientRoutes = [
   // common
@@ -38,7 +38,7 @@ export const clientRoutes = [
   // cart & checkout
   { path: "cart", element: <CartPage /> },
   { path: "checkout", element: <CheckoutPage /> },
-  { path: "checkout-success", element: <CheckoutSuccessPage /> },
+  { path: "/checkout-success/:orderId", element: <CheckoutSuccessPage /> },
 
   // blog
   { path: "blogs", element: <BlogListPage /> },
@@ -51,5 +51,5 @@ export const clientRoutes = [
   { path: "me/wishlist", element: <WishListProductPage /> },
 
   //order
-  { path: "order", element: <OrderHistoryPage /> },
+  { path: "/orders/history", element: <OrderHistoryPage /> },
 ];

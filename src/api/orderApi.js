@@ -1,19 +1,29 @@
+// src/api/orderApi.js
 import api from ".";
 
-export const createOrder = (data) => api.post("/api/orders", data);
+export const createOrder = async (orderData) => {
+  const res = await api.post("/api/orders", orderData);
+  return res.data;
+};
 
-export const getAllOrders = (params = {}) => {
-  return instance.get("/orders", { params });
+export const createPayosPayment = (data) => {
+  return api.post("/api/payment", data);
+};
+
+export const getOrderById = (id) => {
+  return api.get(`/api/orders/${id}`);
+};
+
+export const getAllOrders = () => {
+  return api.get("/api/orders");
 };
 
 export const updateOrderStatus = (id, status) => {
-  return instance.put(`/orders/${id}/status`, { status });
+  return api.put(`/api/orders/${id}`, { status });
 };
 
-export const getOrderById = (id) => api.get(`/api/orders/${id}`);
-
-export const deleteOrder = (id) => api.delete(`/api/orders/${id}`);
-
-export const getMyOrders = () => {
-  return api.get("/orders/my-orders");
+export const deleteOrder = (id) => {
+  return api.delete(`/api/orders/${id}`);
 };
+export const cancelOrder = (orderId, data) =>
+  axios.put(`/orders/${orderId}/cancel`, data);

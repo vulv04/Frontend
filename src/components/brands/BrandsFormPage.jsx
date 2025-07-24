@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import { Form, Input, Switch, Button, message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { createBrand, updateBrand, getBrandById } from "../../api/brandApi"; // Đảm bảo bạn có 3 API này
-
+import { createBrand, getBrandById, updateBrand } from "../../api/brandApi";
 const BrandsFormPage = () => {
   const [form] = Form.useForm();
   const { id } = useParams();
