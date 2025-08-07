@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useCart } from "../../contexts/CartContext";
 import { createOrder } from "../../api/orderApi";
+import { createPayosOrder } from "../../api/cartApi";
 import { useNavigate } from "react-router-dom";
 import {
   Form,
@@ -15,15 +16,12 @@ import {
   Col,
 } from "antd";
 import axios from "axios";
-import { createPayosOrder } from "../../api/cartApi";
 
 const { Title } = Typography;
 const { Option } = Select;
 
-// ... (imports giữ nguyên như bạn gửi)
-
 const CheckoutPage = () => {
-  const { cartItems, totalPrice, clearCart } = useCart();
+  const { cartItems, totalPrice} = useCart();
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -70,17 +68,21 @@ const CheckoutPage = () => {
         districts.find((d) => d.code == selectedDistrict)?.name || "";
       const wardName = wards.find((w) => w.name == values.ward)?.name || "";
 
-      const products = cartItems.map((item) => ({
-        productId: item.productId?._id || item._id,
-        name: item.productId?.name || item.name,
-        image: item.productId?.images?.[0] || item.image,
-        quantity: item.quantity,
-        price:
-          (item.productId?.price || 0) + (item.variantId?.price || 0),
-        size: item.size,
-        color: item.color,
-        variantId: item.variantId?._id || item.variantId,
-      }));
+      const products = cartItems.map((item) => {
+        const product = item.productId || item;
+        const variant = item.variantId || {};
+
+        return {
+          productId: product._id,
+          name: product.title || "Không tên",
+          image: product.images?.[0] || variant.image || "",
+          quantity: item.quantity,
+          price: (product.price || 0) + (variant.price || 0),
+          size: item.size || variant.size || "Chưa chọn",
+          color: item.color || variant.color || "Chưa chọn",
+          variantId: variant._id || item.variantId,
+        };
+      });
 
       const shippingAddress = {
         fullName: values.name,
@@ -92,20 +94,25 @@ const CheckoutPage = () => {
         note: values.note || "",
       };
 
-      if (paymentMethod === "COD") {
-        const orderData = {
-          orderItems: products,
-          shippingAddress,
-          paymentMethod,
-          totalPrice,
-        };
+      // ⚠️ Nếu backend đã lấy user từ token → KHÔNG CẦN gửi userId
+      const orderData = {
+        orderItems: products,
+        shippingAddress,
+        paymentMethod,
+        totalPrice,
+      };
 
+      if (paymentMethod === "COD") {
         const newOrder = await createOrder(orderData);
-        clearCart();
-        navigate(`/orders/${newOrder._id}`);
+
+        console.log("✅ Đơn hàng mới:", newOrder);
+
+        if (!newOrder?._id) {
+          throw new Error("Tạo đơn hàng thất bại: không có ID đơn hàng trả về");
+        }
+        navigate(`/checkout-success/${newOrder._id}`);
       } else if (paymentMethod === "PayOS") {
         const payosOrder = {
-          userId: localStorage.getItem("userId"),
           address: `${values.address}, ${wardName}, ${districtName}, ${provinceName}`,
           phoneNumber: values.phone,
           note: values.note || "",
@@ -114,10 +121,14 @@ const CheckoutPage = () => {
         };
 
         const { data } = await createPayosOrder(payosOrder);
+        if (!data?.data?.checkoutUrl) {
+          throw new Error("Không lấy được link thanh toán PayOS");
+        }
+
         window.location.href = data.data.checkoutUrl;
       }
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi đặt hàng:", error?.response?.data || error.message);
       message.error("Đặt hàng thất bại. Vui lòng thử lại.");
     }
   };
@@ -129,14 +140,30 @@ const CheckoutPage = () => {
         <Col xs={24} md={14}>
           <Card title="Thông tin giao hàng">
             <Form layout="vertical" form={form}>
-              <Form.Item name="name" label="Họ và tên" rules={[{ required: true }]}>
+              <Form.Item
+                name="name"
+                label="Họ và tên"
+                rules={[{ required: true }]}
+              >
                 <Input placeholder="Nhập họ tên người nhận" size="large" />
               </Form.Item>
-              <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true }]}>
+              <Form.Item
+                name="phone"
+                label="Số điện thoại"
+                rules={[{ required: true }]}
+              >
                 <Input placeholder="Nhập số điện thoại" size="large" />
               </Form.Item>
-              <Form.Item name="province" label="Tỉnh/Thành phố" rules={[{ required: true }]}>
-                <Select onChange={setSelectedProvince} placeholder="Chọn tỉnh" size="large">
+              <Form.Item
+                name="province"
+                label="Tỉnh/Thành phố"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  onChange={setSelectedProvince}
+                  placeholder="Chọn tỉnh"
+                  size="large"
+                >
                   {provinces.map((p) => (
                     <Option key={p.code} value={p.code}>
                       {p.name}
@@ -144,8 +171,16 @@ const CheckoutPage = () => {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="district" label="Quận/Huyện" rules={[{ required: true }]}>
-                <Select onChange={setSelectedDistrict} placeholder="Chọn huyện" size="large">
+              <Form.Item
+                name="district"
+                label="Quận/Huyện"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  onChange={setSelectedDistrict}
+                  placeholder="Chọn huyện"
+                  size="large"
+                >
                   {districts.map((d) => (
                     <Option key={d.code} value={d.code}>
                       {d.name}
@@ -153,7 +188,11 @@ const CheckoutPage = () => {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="ward" label="Phường/Xã" rules={[{ required: true }]}>
+              <Form.Item
+                name="ward"
+                label="Phường/Xã"
+                rules={[{ required: true }]}
+              >
                 <Select placeholder="Chọn xã" size="large">
                   {wards.map((w) => (
                     <Option key={w.code} value={w.name}>
@@ -162,7 +201,11 @@ const CheckoutPage = () => {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="address" label="Địa chỉ cụ thể" rules={[{ required: true }]}>
+              <Form.Item
+                name="address"
+                label="Địa chỉ cụ thể"
+                rules={[{ required: true }]}
+              >
                 <Input placeholder="Số nhà, đường, khu phố..." size="large" />
               </Form.Item>
               <Form.Item name="note" label="Ghi chú" rules={[{ max: 255 }]}>
@@ -199,7 +242,9 @@ const CheckoutPage = () => {
                   <div>
                     <strong>{item.productId?.name}</strong>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
                     <span
                       style={{
                         display: "inline-block",
@@ -211,12 +256,14 @@ const CheckoutPage = () => {
                         border: "1px solid #ddd",
                       }}
                     ></span>
-                    <span>/ {item.size || item.variantId?.size || "Không có size"}</span>
+                    <span>
+                      / {item.size || item.variantId?.size || "Không có size"}
+                    </span>
                   </div>
                   <div>Số lượng: {item.quantity}</div>
                 </div>
                 <div style={{ fontWeight: 500 }}>
-                  {(price).toLocaleString()} ₫
+                  {price.toLocaleString()} ₫
                 </div>
               </div>
             );
@@ -249,4 +296,3 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
-

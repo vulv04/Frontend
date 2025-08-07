@@ -7,5 +7,5 @@ export const updateUser = (userId, data) => {
   return api.put(`/users/${userId}`, data);
 };
 export const getAllUsers = () => {
-  return api.get("/users");
+  return api.get("/api/users");
 };

@@ -203,11 +203,20 @@ const AdminLayout = () => {
       ],
     },
     {
-      key: "posts",
+      key: "blogs",
       icon: <ProfileOutlined />,
       label: (
-        <NavLink to="posts" style={navStyle}>
+        <NavLink to="blogs" style={navStyle}>
           Bài viết
+        </NavLink>
+      ),
+    },
+    {
+      key: "news",
+      icon: <ProfileOutlined />,
+      label: (
+        <NavLink to="news" style={navStyle}>
+          Tin tức
         </NavLink>
       ),
     },

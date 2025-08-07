@@ -1,4 +1,4 @@
-// ✅ Đã chuyển giao diện sang Ant Design (antd), giữ nguyên logic cũ
+
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -236,7 +236,6 @@ const ProductListPage = () => {
           </Link>
         </div>
       </div>
-
       <div
         style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}
       >

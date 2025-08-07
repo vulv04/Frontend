@@ -1,33 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Card, Typography, Button } from "antd";
+import { Row, Col, Card, Typography, Button, message } from "antd";
+import { getAllNews } from "../../api/newsApi"; // Đường dẫn này thay đổi nếu bạn lưu file khác
 
 const { Title, Paragraph, Text } = Typography;
-
-const mockNews = [
-  {
-    id: 1,
-    title: "Khai trương cửa hàng mới tại Hà Nội",
-    description:
-      "Denny Fashion khai trương cửa hàng mới với nhiều ưu đãi hấp dẫn...",
-    image:
-      "https://images.unsplash.com/photo-1522199755839-a2bacb67c546?auto=format&fit=crop&w=800&q=80",
-    date: "2025-07-15",
-  },
-  {
-    id: 2,
-    title: "Bộ sưu tập Thu - Đông 2025 đã có mặt",
-    description: "Khám phá phong cách thời trang mới cho mùa thu đông năm nay.",
-    image:
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=80",
-    date: "2025-07-10",
-  },
-];
 
 const NewsPage = () => {
   const [news, setNews] = useState([]);
 
+  const fetchNews = async () => {
+    try {
+      const data = await getAllNews();
+      setNews(data);
+    } catch (error) {
+      console.error(error);
+      message.error("Không thể tải tin tức");
+    }
+  };
+
   useEffect(() => {
-    setNews(mockNews); // sau này bạn có thể gọi từ API
+    fetchNews();
   }, []);
 
   return (
@@ -36,25 +27,37 @@ const NewsPage = () => {
 
       <Row gutter={[24, 24]}>
         {news.map((item) => (
-          <Col key={item.id} xs={24} sm={12} md={8}>
+          <Col key={item._id} xs={24} sm={12} md={8}>
             <Card
               hoverable
               cover={
-                <img
-                  alt={item.title}
-                  src={item.image}
-                  style={{ height: 200, objectFit: "cover" }}
-                />
+                item.image && (
+                  <div style={{ height: 200, overflow: "hidden" }}>
+                    <img
+                      alt={item.title}
+                      src={item.image}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                    />
+                  </div>
+                )
               }
               style={{ height: "100%" }}
             >
               <Title level={5}>{item.title}</Title>
               <Paragraph ellipsis={{ rows: 2 }}>{item.description}</Paragraph>
               <Text type="secondary">
-                Ngày đăng: {new Date(item.date).toLocaleDateString("vi-VN")}
+                Ngày đăng:{" "}
+                {item.publishedAt
+                  ? new Date(item.publishedAt).toLocaleDateString("vi-VN")
+                  : "Chưa công bố"}
               </Text>
               <div style={{ marginTop: 12 }}>
-                <Button type="link" href={`/news/${item.id}`}>
+                <Button type="link" href={`/news/${item._id}`}>
                   Xem chi tiết
                 </Button>
               </div>

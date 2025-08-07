@@ -20,10 +20,13 @@ import ProductFormPageCreate from "../pages/admin/products/ProductFormPageCreate
 import ProfileListPage from "../pages/admin/ProfileListPage";
 import AdminProfilePage from "../pages/admin/AdminProfilePage";
 import BrandTrashPage from "../components/brands/BrandTrashPage";
+import NewListPage from "../pages/admin/news/NewListPage";
+import NewEditPage from "../pages/admin/news/NewEditPage";
+import NewAddPage from "../pages/admin/news/NewAddPage";
 export const adminRoutes = [
   { index: true, element: <DashBoardPage /> },
   { path: "settings", element: <SettingsPage /> },
-  { path: "me/profile/:id", element: <AdminProfilePage /> }, // User profile page
+  { path: "me/profile/:id", element: <AdminProfilePage /> }, // User profile admin
 
   // * Products routes
   { path: "products", element: <ProductListPage /> },
@@ -62,4 +65,9 @@ export const adminRoutes = [
   { path: "brands/add", element: <BrandsFormPage /> },
   { path: "brands/edit/:id", element: <BrandsFormPage /> },
   { path: "/admin/brands/trash", element: <BrandTrashPage /> },
+
+  // * News
+  { path: "news", element: <NewListPage /> },
+  { path: "news/edit/:id", element: <NewEditPage /> },
+  { path: "news/add", element: <NewAddPage /> },
 ];

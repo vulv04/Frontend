@@ -3,14 +3,6 @@ import { useEffect, useState } from "react";
 import { getProductById } from "../../../api/productApi";
 import { Spin, message, Tag, Button } from "antd";
 
-const statusColorMap = {
-  pending: "default",
-  processing: "blue",
-  shipping: "orange",
-  completed: "green",
-  cancelled: "red",
-};
-
 const formatDate = (date) => {
   if (!date) return "Không rõ";
   const d = new Date(date);
@@ -115,12 +107,6 @@ const ProductDetailPage = () => {
               </p>
               <p>
                 <strong>Thương hiệu:</strong> {product.brand || "Chưa rõ"}
-              </p>
-              <p>
-                <strong>Trạng thái:</strong>{" "}
-                <Tag color={statusColorMap[product.status] || "default"}>
-                  {product.status || "Chưa rõ"}
-                </Tag>
               </p>
               <p>
                 <strong>Mô tả:</strong>{" "}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { message, Spin } from "antd"; // dùng antd cho loading, toast
-import { getAllUsers } from "../../../../Backend/src/modules/user/user.controller";
+import { getAllUsers } from "../../api/user";
 
 const ProfileListPage = () => {
   const [users, setUsers] = useState([]);
@@ -70,7 +70,15 @@ const ProfileListPage = () => {
                     </td>
                     <td>
                       <button className="btn btn-sm btn-info me-2">Edit</button>
-                      <button className="btn btn-sm btn-danger">Delete</button>
+                      {user.role !== "admin" ? (
+                        <button className="btn btn-sm btn-danger">
+                          Delete
+                        </button>
+                      ) : (
+                        <button className="btn btn-sm btn-danger" disabled>
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
