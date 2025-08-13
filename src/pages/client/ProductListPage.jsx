@@ -5,7 +5,7 @@ import { getProducts } from "../../api/productApi";
 
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);
-  const [quickViewProduct, setQuickViewProduct] = useState(null); // 🛠 Sửa lỗi ở đây
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -28,23 +28,31 @@ const ProductListPage = () => {
         {products.length === 0 ? (
           <div className="text-center w-100">Không có sản phẩm</div>
         ) : (
-          products.map((product) => (
-            <div className="col" key={product._id}>
-              <ProductCard
-                title={product.title}
-                image={product.thumbnail || product.images?.[0]}
-                price={product.price}
-                oldPrice={product.oldPrice}
-                gender={product.gender}
-                size={product.size}
-                label={product.label}
-                promo={product.promo}
-                variants={product.colors}
-                sold={product.sold || 0}
-                onQuickView={() => setQuickViewProduct(product)} // 👈 Kích hoạt modal
-              />
-            </div>
-          ))
+          products.map((product) => {
+            const firstVariant = product.variants?.[0];
+            return (
+              <div className="col" key={product._id}>
+                <ProductCard
+                  title={product.title}
+                  image={
+                    product.thumbnail ||
+                    product.images?.[0] ||
+                    firstVariant?.images?.[0]
+                  }
+                  price={firstVariant?.price || product.price}
+                  oldPrice={product.oldPrice}
+                  gender={product.gender}
+                  size={firstVariant?.size}
+                  color={firstVariant?.color}
+                  label={product.label}
+                  promo={product.promo}
+                  variants={product.variants}
+                  sold={product.sold || 0}
+                  onQuickView={() => setQuickViewProduct(product)}
+                />
+              </div>
+            );
+          })
         )}
       </div>
 

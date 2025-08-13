@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useParams, Navigate, useNavigate } from "react-router-dom";
 import {
   Card,
   Avatar,
@@ -9,18 +8,17 @@ import {
   Form,
   Input,
   message,
+  Tag,
 } from "antd";
 import {
   UserOutlined,
-  HistoryOutlined,
   EditOutlined,
   SaveOutlined,
+  CheckCircleTwoTone,
 } from "@ant-design/icons";
 import { useForm, Controller } from "react-hook-form";
 
-const ProfilePage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const AdminProfilePage = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const [isEditing, setIsEditing] = useState(false);
 
@@ -34,62 +32,58 @@ const ProfilePage = () => {
     },
   });
 
-  if (!storedUser || !storedUser._id) {
+  if (!storedUser) {
     return (
       <div className="container mt-5 text-center">
         <Card>
-          <p>Bạn cần đăng nhập để xem trang hồ sơ.</p>
+          <p>Bạn cần đăng nhập để xem trang hồ sơ quản trị.</p>
         </Card>
       </div>
     );
   }
 
-  if (storedUser._id.toString() !== id.toString()) {
-    return <Navigate to="/" replace />;
-  }
-
   const onSubmit = (data) => {
     localStorage.setItem("user", JSON.stringify({ ...storedUser, ...data }));
-    message.success("Cập nhật thông tin thành công");
+    message.success("Thông tin đã được cập nhật!");
     setIsEditing(false);
-    reset(data); // cập nhật form mới
+    reset(data);
   };
 
   return (
-    <div className="container" style={{ maxWidth: 800, marginTop: 40 }}>
+    <div style={{ maxWidth: 800, margin: "40px auto" }}>
       <Card
         bordered
-        title="Thông tin tài khoản"
+        title={
+          <span>
+            <CheckCircleTwoTone twoToneColor="#52c41a" /> Hồ sơ Quản trị viên
+          </span>
+        }
         extra={
-          <div>
-            <Button
-              icon={<HistoryOutlined />}
-              style={{ marginRight: 8 }}
-              onClick={() => navigate("/orders/history")}
-            >
-              Lịch sử đơn hàng
-            </Button>
-            <Button
-              icon={<EditOutlined />}
-              type="primary"
-              onClick={() => setIsEditing(true)}
-            >
-              Sửa thông tin
-            </Button>
-          </div>
+          <Button
+            icon={<EditOutlined />}
+            type="primary"
+            onClick={() => setIsEditing(true)}
+          >
+            Chỉnh sửa
+          </Button>
         }
       >
-        <div className="text-center mb-4">
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
           <Avatar
             size={100}
+            style={{ backgroundColor: "#1890ff" }}
             icon={<UserOutlined />}
             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-              storedUser.username || "User"
+              storedUser.fullname || "Admin"
             )}&background=random`}
           />
+          <h3 style={{ marginTop: 12 }}>{storedUser.fullname}</h3>
+          <Tag color="geekblue" style={{ fontSize: 14 }}>
+            {storedUser.role === "admin" ? "Administrator" : "User"}
+          </Tag>
         </div>
 
-        <Descriptions bordered column={1} size="middle">
+        <Descriptions column={1} bordered>
           <Descriptions.Item label="Tên đăng nhập">
             {storedUser.username}
           </Descriptions.Item>
@@ -100,10 +94,10 @@ const ProfilePage = () => {
             {storedUser.email}
           </Descriptions.Item>
           <Descriptions.Item label="Số điện thoại">
-            {storedUser.phone || "Chưa có"}
+            {storedUser.phone || "Chưa cập nhật"}
           </Descriptions.Item>
           <Descriptions.Item label="Địa chỉ">
-            {storedUser.address || "Chưa có"}
+            {storedUser.address || "Chưa cập nhật"}
           </Descriptions.Item>
           <Descriptions.Item label="Vai trò">
             {storedUser.role || "user"}
@@ -112,11 +106,11 @@ const ProfilePage = () => {
       </Card>
 
       <Modal
-        title="Sửa thông tin người dùng"
+        title="Cập nhật thông tin quản trị"
         open={isEditing}
         onCancel={() => setIsEditing(false)}
         onOk={handleSubmit(onSubmit)}
-        okText="Lưu"
+        okText="Lưu thay đổi"
         okButtonProps={{ icon: <SaveOutlined /> }}
       >
         <Form layout="vertical">
@@ -161,4 +155,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default AdminProfilePage;

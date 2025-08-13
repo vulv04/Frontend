@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProductById } from "../../api/productApi";
-import { getVariantsByProductId } from "../../api/variantApi";
 import { addToCart } from "../../api/cartApi";
 import { message } from "antd";
 import CommentSection from "../comments/CommentSection";
+import { useCart } from "../../contexts/CartContext";
+import { getProductById } from "../../api/productApi";
+import { getVariantsByProductId } from "../../api/variantApi";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -14,7 +15,10 @@ const ProductDetailPage = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [variants, setVariants] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [sku, setSku] = useState("");
+
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -33,12 +37,6 @@ const ProductDetailPage = () => {
         const res = await getVariantsByProductId(id);
         const variantList = res.data.variants || res.data;
         setVariants(variantList);
-
-        if (variantList.length > 0) {
-          setSelectedColor(variantList[0].color);
-          setSelectedSize(variantList[0].size);
-          setSku(variantList[0].sku || "");
-        }
       } catch (err) {
         console.error("Lỗi khi lấy biến thể:", err);
       }
@@ -49,18 +47,38 @@ const ProductDetailPage = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
-    if (!selectedColor || !selectedSize || !sku) {
+    if (!selectedColor || !selectedSize || !selectedVariant) {
       return message.error("Vui lòng chọn đầy đủ màu sắc và kích thước!");
     }
+
+    if (quantity > selectedVariant.stock) {
+      return message.error("Hết hàng!");
+    }
+
+    const finalPrice = (product?.price ?? 0) + (selectedVariant?.price ?? 0);
 
     try {
       await addToCart({
         productId: id,
+        variantId: selectedVariant?._id,
         quantity,
         color: selectedColor,
         size: selectedSize,
-        sku,
+        sku: selectedVariant?.sku,
       });
+
+      addItem({
+        productId: id,
+        title: product?.title,
+        thumbnail: selectedVariant?.images?.[0] || product?.thumbnail,
+        price: finalPrice,
+        color: selectedColor,
+        size: selectedSize,
+        quantity,
+        sku: selectedVariant?.sku,
+        variantId: selectedVariant?._id,
+      });
+
       message.success("Đã thêm vào giỏ hàng!");
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
@@ -77,16 +95,21 @@ const ProductDetailPage = () => {
     thumbnail,
     images = [],
     description,
-    price,
-    oldPrice,
+    price = 0,
+    oldPrice = 0,
     label,
     promoCodes = ["HELLO", "FREESHIP"],
   } = product;
 
+  const variantPrice = selectedVariant?.price ?? 0;
+  const variantOldPrice = selectedVariant?.oldPrice ?? 0;
+  const finalPrice = price + variantPrice;
+  const finalOldPrice =
+    oldPrice + variantOldPrice > finalPrice ? oldPrice + variantOldPrice : 0;
+
   return (
     <div className="container my-5">
       <div className="row">
-        {/* Ảnh sản phẩm */}
         <div className="col-md-6">
           {selectedImage ? (
             <img
@@ -132,23 +155,20 @@ const ProductDetailPage = () => {
           </div>
         </div>
 
-        {/* Thông tin sản phẩm */}
         <div className="col-md-6">
           <h4>{title}</h4>
-          <div className="text-muted mb-2">
-            {description || "Chưa có mô tả"}
-          </div>
-
           {label && (
             <span className="badge bg-warning text-dark me-2">{label}</span>
           )}
 
           <div className="my-3">
             <span className="text-danger fs-4 fw-bold">
-              {(price ?? 0).toLocaleString()}₫
+              {finalPrice.toLocaleString()}₫
             </span>{" "}
-            {oldPrice && (
-              <del className="text-muted">{oldPrice.toLocaleString()}₫</del>
+            {finalOldPrice > finalPrice && (
+              <del className="text-muted">
+                {finalOldPrice.toLocaleString()}₫
+              </del>
             )}
           </div>
 
@@ -160,7 +180,6 @@ const ProductDetailPage = () => {
             ))}
           </div>
 
-          {/* Màu sắc */}
           <div className="mb-3">
             <strong>Màu sắc:</strong>
             <div className="d-flex gap-2 mt-2 flex-wrap">
@@ -181,17 +200,15 @@ const ProductDetailPage = () => {
                   title={color}
                   onClick={() => {
                     setSelectedColor(color);
-                    // reset size + sku khi đổi màu
-                    const firstSize = variants.find((v) => v.color === color);
-                    setSelectedSize(firstSize?.size || "");
-                    setSku(firstSize?.sku || "");
+                    setSelectedSize("");
+                    setSelectedVariant(null);
+                    setSku("");
                   }}
                 ></div>
               ))}
             </div>
           </div>
 
-          {/* Kích thước */}
           <div className="mb-3">
             <strong>Kích thước:</strong>
             <div className="d-flex gap-2 mt-2 flex-wrap">
@@ -207,7 +224,13 @@ const ProductDetailPage = () => {
                     }`}
                     onClick={() => {
                       setSelectedSize(v.size);
-                      setSku(v.sku || "");
+                      const foundVariant = variants.find(
+                        (variant) =>
+                          variant.color === selectedColor &&
+                          variant.size === v.size
+                      );
+                      setSelectedVariant(foundVariant || null);
+                      setSku(foundVariant?.sku || "");
                     }}
                   >
                     {v.size}
@@ -216,21 +239,57 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
+          {selectedVariant?.stock !== undefined && (
+            <div className="text-muted small mb-2">
+              Tồn kho: {selectedVariant.stock} sản phẩm
+            </div>
+          )}
+
+          {!selectedColor || !selectedSize ? (
+            <div className="text-danger small mb-2">
+              Vui lòng chọn đầy đủ màu sắc và kích thước
+            </div>
+          ) : null}
+
           <div className="d-flex align-items-center gap-2 mt-4">
-            <input
-              type="number"
-              value={quantity}
-              min={1}
-              className="form-control"
-              style={{ width: "80px" }}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
+            <div className="d-flex align-items-center">
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+              >
+                –
+              </button>
+              <input
+                type="number"
+                className="form-control text-center mx-2"
+                value={quantity}
+                readOnly
+                style={{ width: 60 }}
+              />
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() =>
+                  setQuantity((prev) =>
+                    selectedVariant
+                      ? Math.min(prev + 1, selectedVariant.stock)
+                      : prev + 1
+                  )
+                }
+                disabled={selectedVariant && quantity >= selectedVariant.stock}
+              >
+                +
+              </button>
+            </div>
+
             <button
               className="btn btn-outline-dark w-100"
               onClick={handleAddToCart}
+              disabled={!selectedColor || !selectedSize}
             >
               Thêm vào giỏ hàng
             </button>
+
             <button className="btn btn-primary w-100">Mua ngay</button>
           </div>
 
@@ -242,7 +301,6 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <ul className="nav nav-tabs mt-5" role="tablist">
         <li className="nav-item" role="presentation">
           <button

@@ -4,15 +4,10 @@ import { useLanguage } from "../../contexts/LanguageContext";
 import translations from "../../i18n/lang";
 import styled from "@emotion/styled";
 import { NavLink as RouterNavLink } from "react-router-dom";
-import {
-  FiSearch,
-  FiUser,
-  FiHeart,
-  FiBell,
-  FiShoppingBag,
-} from "react-icons/fi";
+import { FiSearch, FiUser, FiHeart, FiBell } from "react-icons/fi";
 import { message } from "antd";
-import CartDropdown from "../carts/CartDropdown";
+import CartIconWithBadge from "../CartIconWithBadge";
+import { useCart } from "../../contexts/CartContext";
 const StyledNavLink = styled(RouterNavLink)`
   position: relative;
   display: inline-block;
@@ -156,7 +151,7 @@ const Header = () => {
   const searchRef = useRef();
   const t = (key) => translations[lang][key] || key; // 👈 Tạo hàm t()
   const user = JSON.parse(localStorage.getItem("user"));
-
+  const { totalQuantity } = useCart();
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -301,10 +296,10 @@ const Header = () => {
                 </IconWrapper>
                 <IconWrapper>
                   <FiBell />
-                  <Badge>3</Badge>
+                  <Badge>0</Badge>
                 </IconWrapper>
-                <IconWrapper onClick={() => navigate("/cart")}>
-                  <CartDropdown />
+                <IconWrapper>
+                  <CartIconWithBadge />
                 </IconWrapper>
               </IconGroup>
             </div>

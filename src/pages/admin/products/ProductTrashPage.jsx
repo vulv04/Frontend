@@ -4,7 +4,7 @@ import {
   getProducts,
   restoreProduct,
   hardDeleteProduct,
-} from "../../api/productApi";
+} from "../../../api/productApi";
 import { message, Spin } from "antd";
 import { FaArrowLeft, FaTrashRestore, FaTrashAlt } from "react-icons/fa";
 

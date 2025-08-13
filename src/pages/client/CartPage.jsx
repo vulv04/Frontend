@@ -1,277 +1,215 @@
-import React, { useEffect, useState } from "react";
-import { getCart, removeFromCart } from "../../api/cartApi";
-import { message } from "antd";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { getCart, removeFromCart, updateCartQuantity } from "../../api/cartApi";
+import {
+  message,
+  Button,
+  Table,
+  InputNumber,
+  Popconfirm,
+  Empty,
+  Divider,
+} from "antd";
+import { useCart } from "../../contexts/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [showInvoice, setShowInvoice] = useState(false);
-  const [invoiceInfo, setInvoiceInfo] = useState({
-    companyName: "",
-    taxCode: "",
-    companyAddress: "",
-    email: "",
-  });
-
-  const token = localStorage.getItem("token");
-  const FREESHIP_THRESHOLD = 1000000;
+  const { cartItems, setCartItems } = useCart();
+  const navigate = useNavigate();
+  const [loadingItems, setLoadingItems] = useState({});
+  const quantityTimers = useRef({});
 
   useEffect(() => {
-    const fetchCart = async () => {
+    const fetchCartData = async () => {
       try {
         const res = await getCart();
-        setCartItems(res.data.items);
+        const items = res.data?.items || [];
+        setCartItems(items);
       } catch (err) {
-        console.error("Lỗi khi lấy giỏ hàng:", err);
+        message.error("Lỗi khi tải giỏ hàng");
       }
     };
-
-    fetchCart();
+    fetchCartData();
   }, []);
 
-  const handleRemove = async (productId) => {
+  const updateQuantityDebounced = (item, quantity) => {
+    const key = `${item.productId._id}-${item.color}-${item.size}`;
+    clearTimeout(quantityTimers.current[key]);
+
+    setCartItems((prevItems) =>
+      prevItems.map((it) =>
+        it?.productId?._id === item.productId._id &&
+        it.color === item.color &&
+        it.size === item.size
+          ? { ...it, quantity }
+          : it
+      )
+    );
+
+    quantityTimers.current[key] = setTimeout(async () => {
+      setLoadingItems((prev) => ({ ...prev, [key]: true }));
+      try {
+        await updateCartQuantity({
+          productId: item.productId._id,
+          variantId: item.variantId._id,
+          quantity,
+        });
+      } catch (err) {
+        message.warning("Hết hàng!");
+      } finally {
+        setLoadingItems((prev) => ({ ...prev, [key]: false }));
+      }
+    }, 500);
+  };
+
+  const handleBlur = async (item) => {
+    const key = `${item.productId._id}-${item.color}-${item.size}`;
+    if (quantityTimers.current[key]) return;
+    await updateCartQuantity({
+      productId: item.productId._id,
+      variantId: item.variantId._id,
+      quantity: item.quantity,
+    });
+  };
+
+  const handleRemove = async (item) => {
+    if (!item?.productId?._id || !item?.variantId?._id) return;
     try {
-      await removeFromCart(productId, token);
-      setCartItems((prev) =>
-        prev.filter((item) => item.productId._id !== productId)
+      await removeFromCart({
+        productId: item.productId._id,
+        variantId: item.variantId._id,
+      });
+      message.success("Đã xoá sản phẩm");
+      setCartItems((prevItems) =>
+        prevItems.filter(
+          (i) =>
+            !(
+              i?.productId?._id === item.productId._id &&
+              i.variantId._id === item.variantId._id
+            )
+        )
       );
-      message.success("Đã xóa sản phẩm khỏi giỏ hàng");
     } catch (err) {
-      console.error("Lỗi khi xóa sản phẩm:", err);
-      message.error("Không thể xóa sản phẩm");
+      message.error("Xoá thất bại");
     }
   };
 
-  const handleQuantityChange = (productId, type) => {
-    setCartItems((prev) =>
-      prev.map((item) => {
-        if (item.productId._id === productId) {
-          const newQuantity =
-            type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      })
-    );
-  };
+  const totalAmount =
+    cartItems?.reduce((acc, item) => {
+      const base = item?.productId?.price || 0;
+      const variant = item?.variantId?.price || 0;
+      return acc + (base + variant) * (item?.quantity || 0);
+    }, 0) || 0;
 
-  const totalAmount = cartItems.reduce(
-    (acc, item) => acc + (item.productId?.price || 0) * item.quantity,
-    0
-  );
-  
+  const columns = [
+    {
+      title: "Sản phẩm",
+      dataIndex: "productId",
+      render: (product, item) => {
+        if (!product) return <i>Sản phẩm đã bị xoá</i>;
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <img
+              src={product.thumbnail || product.images?.[0]}
+              alt={product.title}
+              style={{
+                width: 60,
+                height: 60,
+                objectFit: "cover",
+                borderRadius: 8,
+              }}
+            />
+            <div>
+              <div>
+                <strong>{product.title}</strong>
+              </div>
+              <div>
+                <span>Màu: {item.variantId?.color || item.color}</span> -{" "}
+                <span>Size: {item.variantId?.size || item.size}</span>
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Giá",
+      render: (_, item) => {
+        const base = item?.productId?.price || 0;
+        const variant = item?.variantId?.price || 0;
+        const total = base + variant;
+        return <span>{total.toLocaleString()}₫</span>;
+      },
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      render: (quantity, item) => {
+        return (
+          <InputNumber
+            min={1}
+            max={item.variantId?.stock || 10}
+            value={quantity}
+            onChange={(val) => updateQuantityDebounced(item, val)}
+            onBlur={() => handleBlur(item)}
+          />
+        );
+      },
+    },
+    {
+      title: "Thành tiền",
+      render: (_, item) => {
+        const base = item?.productId?.price || 0;
+        const variant = item?.variantId?.price || 0;
+        const total = (base + variant) * (item?.quantity || 0);
+        return <strong>{total.toLocaleString()}₫</strong>;
+      },
+    },
+    {
+      title: "Hành động",
+      render: (_, item) => (
+        <Popconfirm
+          title="Xoá sản phẩm khỏi giỏ hàng?"
+          onConfirm={() => handleRemove(item)}
+          okText="Xoá"
+          cancelText="Huỷ"
+        >
+          <Button danger>Xoá</Button>
+        </Popconfirm>
+      ),
+    },
+  ];
 
-  const missingAmount = Math.max(FREESHIP_THRESHOLD - totalAmount, 0);
-  const progressPercent = Math.min(
-    (totalAmount / FREESHIP_THRESHOLD) * 100,
-    100
-  );
+  const validItems = cartItems.filter((item) => item?.productId?._id);
 
   return (
-    <div className="container my-5">
-      <h5 className="fw-bold mb-3">🛒 GIỎ HÀNG</h5>
-
-      {/* Thanh freeship */}
-      <div className="mb-3">
-        <p className="mb-1">
-          {missingAmount === 0 ? (
-            <span className="text-success">
-              Bạn đã đủ điều kiện được freeship!
-            </span>
-          ) : (
-            <>
-              Bạn cần mua thêm{" "}
-              <span className="text-danger fw-bold">
-                {missingAmount.toLocaleString()}₫
-              </span>{" "}
-              để được freeship
-            </>
-          )}
-        </p>
-        <div className="progress" style={{ height: "8px" }}>
-          <div
-            className="progress-bar"
-            role="progressbar"
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {cartItems.length === 0 ? (
-        <div className="alert alert-info">
-          Không có sản phẩm trong giỏ hàng.
-        </div>
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 16px" }}>
+      <h1>Giỏ hàng</h1>
+      {validItems.length === 0 ? (
+        <Empty description="Không có sản phẩm nào" />
       ) : (
-        <div className="row">
-          {/* Cột trái - danh sách sản phẩm */}
-          <div className="col-lg-8">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Sản phẩm</th>
-                  <th>Đơn giá</th>
-                  <th>Số lượng</th>
-                  <th>Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item, index) => {
-                  const product = item.productId;
-                  if (!product) return null;
-
-                  return (
-                    <tr key={product._id}>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <img
-                            src={product.images?.[0]}
-                            alt={product.name}
-                            style={{
-                              width: "70px",
-                              height: "90px",
-                              objectFit: "contain",
-                              border: "1px solid #ddd",
-                              marginRight: "10px",
-                            }}
-                          />
-                          <div>
-                            <p className="mb-1 fw-bold">{product.name}</p>
-                            <p
-                              className="mb-1 text-muted"
-                              style={{ fontSize: "13px" }}
-                            >
-                              {item.size} / {item.color}
-                            </p>
-                            <button
-                              className="btn btn-link p-0 text-danger"
-                              onClick={() => handleRemove(product._id)}
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{product.price.toLocaleString()}₫</td>
-                      <td>{/* quantity buttons */}</td>
-                      <td>
-                        {(product.price * item.quantity).toLocaleString()}₫
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <div className="text-end fw-bold">
-              Tổng tiền:{" "}
-              <span className="text-danger">
-                {totalAmount.toLocaleString()}₫
-              </span>
-            </div>
-            <Link to="/checkout">
-              <button className="btn btn-primary mt-3 float-end">
-                Thanh toán
-              </button>
-            </Link>
+        <>
+          <Table
+            dataSource={validItems}
+            columns={columns}
+            rowKey={(item) =>
+              `${item?.productId?._id}-${item?.color}-${item?.size}`
+            }
+            pagination={false}
+          />
+          <Divider />
+          <div style={{ textAlign: "right", fontSize: 18 }}>
+            Tổng cộng: <strong>{totalAmount.toLocaleString()}₫</strong>
           </div>
-
-          {/* Cột phải - mã giảm giá & hóa đơn */}
-          <div className="col-lg-4">
-            <div className="card shadow-sm p-3">
-              <h6 className="fw-bold mb-2">Các mã giảm giá có thể áp dụng:</h6>
-              <div className="mb-3">
-                {["HELLO", "FREESHIP", "SUDESS0K", "SUDESS0"].map((code) => (
-                  <span
-                    key={code}
-                    className="badge bg-danger text-white me-2 mb-2"
-                    style={{ fontSize: "12px", cursor: "pointer" }}
-                  >
-                    {code}
-                  </span>
-                ))}
-              </div>
-
-              <h6 className="fw-bold">Thời gian giao hàng</h6>
-              <div className="d-flex gap-2 mb-3">
-                <input type="date" />
-                <input type="date" />
-              </div>
-
-              <div className="form-check mb-2">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="invoice"
-                  checked={showInvoice}
-                  onChange={() => setShowInvoice(!showInvoice)}
-                />
-                <label htmlFor="invoice" className="form-check-label">
-                  Xuất hóa đơn công ty
-                </label>
-              </div>
-
-              {showInvoice && (
-                <>
-                  <div className="mb-2">
-                    <label className="form-label">Tên công ty</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={invoiceInfo.companyName}
-                      onChange={(e) =>
-                        setInvoiceInfo({
-                          ...invoiceInfo,
-                          companyName: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label">Mã số thuế</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={invoiceInfo.taxCode}
-                      onChange={(e) =>
-                        setInvoiceInfo({
-                          ...invoiceInfo,
-                          taxCode: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label">Địa chỉ công ty</label>
-                    <textarea
-                      rows={2}
-                      className="form-control"
-                      value={invoiceInfo.companyAddress}
-                      onChange={(e) =>
-                        setInvoiceInfo({
-                          ...invoiceInfo,
-                          companyAddress: e.target.value,
-                        })
-                      }
-                    ></textarea>
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label">Email nhận hoá đơn</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      value={invoiceInfo.email}
-                      onChange={(e) =>
-                        setInvoiceInfo({
-                          ...invoiceInfo,
-                          email: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </>
-              )}
-            </div>
+          <div style={{ textAlign: "right", marginTop: 16 }}>
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => navigate("/checkout")}
+            >
+              Tiến hành thanh toán
+            </Button>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -42,6 +42,7 @@ const ProductCard = ({
       {/* Hình ảnh sản phẩm */}
       <div className="product-image-wrapper position-relative">
         <img
+          style={{ objectFit: "cover", height: "290px" }}
           src={image}
           alt={title}
           className="img-fluid w-100 rounded-top-4 product-image"

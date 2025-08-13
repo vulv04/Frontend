@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useNavigate, NavLink, useLocation } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  NavLink,
+  useLocation,
+  Link,
+} from "react-router-dom";
 import {
   Layout,
   Menu,
@@ -61,7 +67,11 @@ const AdminLayout = () => {
 
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile" icon={<ProfileOutlined />}>
+      <Menu.Item
+        key="profile"
+        onClick={() => navigate(`/admin/me/profile/${user._id}`)}
+        icon={<ProfileOutlined />}
+      >
         Thông tin người dùng
       </Menu.Item>
       <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
@@ -138,29 +148,6 @@ const AdminLayout = () => {
       ],
     },
     {
-      key: "variants",
-      icon: <AppstoreAddOutlined />,
-      label: "Biến thể",
-      children: [
-        {
-          key: "variants",
-          label: (
-            <NavLink to="variants" style={navStyle}>
-              Danh sách biến thể
-            </NavLink>
-          ),
-        },
-        {
-          key: "addVariant",
-          label: (
-            <NavLink to="variants/add" style={navStyle}>
-              Thêm biến thể
-            </NavLink>
-          ),
-        },
-      ],
-    },
-    {
       key: "orders",
       icon: <ShoppingOutlined />,
       label: (
@@ -216,11 +203,20 @@ const AdminLayout = () => {
       ],
     },
     {
-      key: "posts",
+      key: "blogs",
       icon: <ProfileOutlined />,
       label: (
-        <NavLink to="posts" style={navStyle}>
+        <NavLink to="blogs" style={navStyle}>
           Bài viết
+        </NavLink>
+      ),
+    },
+    {
+      key: "news",
+      icon: <ProfileOutlined />,
+      label: (
+        <NavLink to="news" style={navStyle}>
+          Tin tức
         </NavLink>
       ),
     },
@@ -239,15 +235,6 @@ const AdminLayout = () => {
       label: (
         <NavLink to="analytics" style={navStyle}>
           Thống kê
-        </NavLink>
-      ),
-    },
-    {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: (
-        <NavLink to="settings" style={navStyle}>
-          Cài đặt
         </NavLink>
       ),
     },
@@ -329,7 +316,9 @@ const AdminLayout = () => {
               <Button type="text" icon={<BellOutlined />} />
             </Tooltip>
             <Tooltip title="Cài đặt">
-              <Button type="text" icon={<SettingOutlined />} />
+              <NavLink to="settings" style={navStyle}>
+                <Button type="text" icon={<SettingOutlined />} />
+              </NavLink>
             </Tooltip>
             <Tooltip title="Trợ giúp">
               <Button type="text" icon={<QuestionCircleOutlined />} />
