@@ -7,50 +7,86 @@ import Breadcrumb from "../../components/carts/Breadcrumb";
 import { Link } from "react-router-dom";
 
 const ShopPage = () => {
+  const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]);
-  const [filters, setFilters] = useState({
-    category: "",
-    brand: "",
-    search: "",
-  });
+  const [filters, setFilters] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const limit = 6;
 
-  const ListProducts = async () => {
+  const fetchProducts = async () => {
     try {
-      const res = await getProducts({
-        _page: page,
-        _limit: 6,
-        q: filters.search,
-        category: filters.category,
-        brand: filters.brand,
-      });
-
-      console.log("✅ Dữ liệu từ API:", res.data);
-
-      // Fix lỗi .map bằng cách đảm bảo luôn là mảng
-      const productList = Array.isArray(res.data)
+      const res = await getProducts();
+      const list = Array.isArray(res.data)
         ? res.data
         : res.data.products || res.data.data || [];
-
-      setProducts(productList);
-
-      const total =
-        res.headers["x-total-count"] || res.data.total || productList.length;
-
-      setTotalPages(Math.ceil(total / 6));
+      setAllProducts(list);
+      setProducts(list);
+      setTotalPages(Math.ceil(list.length / limit));
     } catch (err) {
-      console.error("❌ Lỗi khi fetch sản phẩm:", err);
+      console.error("Lỗi khi tải sản phẩm:", err);
     }
   };
 
   useEffect(() => {
-    ListProducts();
-  }, [filters, page]);
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    let result = [...allProducts];
+
+    // Tìm kiếm theo tên sản phẩm
+    if (filters.search) {
+      const keyword = filters.search.toLowerCase().trim();
+      result = result.filter((p) => p.title?.toLowerCase().includes(keyword));
+    }
+
+    // Danh mục
+    if (filters.category) {
+      result = result.filter(
+        (p) => p.category?.toLowerCase() === filters.category.toLowerCase()
+      );
+    }
+
+    // Màu sắc (lọc theo variant)
+    if (filters.color) {
+      const colors = filters.color.split(",");
+      result = result.filter((p) =>
+        p.variants?.some((v) => colors.includes(v.color?.toLowerCase()))
+      );
+    }
+
+    // Size (lọc theo variant)
+    if (filters.size) {
+      const sizes = filters.size.split(",");
+      result = result.filter((p) =>
+        p.variants?.some((v) => sizes.includes(v.size?.toUpperCase()))
+      );
+    }
+
+    // Giá
+    if (filters.price) {
+      const [min, max] = filters.price.split("-").map(Number);
+      result = result.filter((p) => p.price >= min && p.price <= max);
+    }
+
+    // Bộ sưu tập
+    if (filters.collection) {
+      result = result.filter(
+        (p) => p.collection?.toLowerCase() === filters.collection.toLowerCase()
+      );
+    }
+
+    setProducts(result);
+    setTotalPages(Math.ceil(result.length / limit));
+    setPage(1);
+  }, [filters, allProducts]);
+
+  const startIndex = (page - 1) * limit;
+  const currentProducts = products.slice(startIndex, startIndex + limit);
 
   const handleFilterChange = (newFilters) => {
-    setFilters({ ...filters, ...newFilters });
-    setPage(1);
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
   return (
@@ -60,7 +96,7 @@ const ShopPage = () => {
       </div>
 
       <div className="row">
-        {/* Sidebar filter */}
+        {/* Sidebar */}
         <div className="col-md-3">
           <SidebarFilter
             filters={filters}
@@ -70,32 +106,26 @@ const ShopPage = () => {
 
         {/* Product list */}
         <div className="col-md-9">
-          <h1>Sản phẩm</h1>
+          <h2 className="fw-bold mb-3">Tất cả sản phẩm</h2>
           <div className="row">
-            {Array.isArray(products) && products.length > 0 ? (
-              products.map((product) => (
-                <div
-                  className="col-sm-6 col-md-4 mb-4"
-                  key={product._id || product.id}
-                >
+            {currentProducts.length > 0 ? (
+              currentProducts.map((p) => (
+                <div className="col-sm-6 col-md-4 mb-4" key={p._id}>
                   <Link
-                    to={`/products/${product._id || product.id}`}
+                    to={`/products/${p._id}`}
                     className="text-decoration-none text-dark"
                   >
                     <ProductCard
-                      title={product.title}
-                      description={product.description}
-                      image={product.thumbnail || product.images?.[0] || ""}
-                      price={product.price}
-                      onAddToCart={() =>
-                        handleAddToCart(product._id || product.id)
-                      }
+                      title={p.title}
+                      description={p.description}
+                      image={p.images?.[0]}
+                      price={p.price}
                     />
                   </Link>
                 </div>
               ))
             ) : (
-              <p>Không có sản phẩm nào.</p>
+              <p>Không có sản phẩm nào phù hợp.</p>
             )}
           </div>
 

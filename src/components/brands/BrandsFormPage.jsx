@@ -45,7 +45,7 @@ const BrandsFormPage = () => {
 
   return (
     <div className="container py-4">
-      <h2>{isEdit ? "✏️ Cập nhật thương hiệu" : "➕ Thêm thương hiệu"}</h2>
+      <h2>{isEdit ? "Cập nhật thương hiệu" : "Thêm thương hiệu"}</h2>
 
       <Form
         layout="vertical"

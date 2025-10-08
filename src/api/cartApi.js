@@ -5,7 +5,7 @@ export const getCart = () => api.get("/api/carts");
 
 export const addToCart = (data) => api.post("/api/carts", data);
 
-// ✅ Sửa để gửi body đúng chuẩn
+// Sửa để gửi body đúng chuẩn
 // cartApi.js
 export const removeFromCart = async ({ productId, variantId }) => {
   return await api.delete("/api/carts/delete", {

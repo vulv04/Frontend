@@ -24,7 +24,7 @@ const Banner = () => {
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         
-        navigation={true} // 👈 Bật nút điều hướng
+        navigation={true} // Bật nút điều hướng
         loop={true}
       >
         {banners.map((img, index) => (
