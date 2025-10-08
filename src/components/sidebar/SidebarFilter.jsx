@@ -1,26 +1,25 @@
 import React, { useState } from "react";
 
 const SidebarFilter = ({ filters, onFilterChange }) => {
-  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [priceRange, setPriceRange] = useState([0, 500000]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     if (type === "checkbox") {
-      const current = filters[name] || [];
+      const current = filters[name]?.split(",") || [];
       const updated = checked
         ? [...current, value]
         : current.filter((v) => v !== value);
-      onFilterChange({ [name]: updated });
+      onFilterChange({ [name]: updated.length ? updated.join(",") : "" });
     } else {
       onFilterChange({ [name]: value });
     }
   };
 
   const handlePriceChange = (e) => {
-    const value = +e.target.value;
+    const val = +e.target.value;
     const newRange =
-      e.target.name === "min" ? [value, priceRange[1]] : [priceRange[0], value];
+      e.target.name === "min" ? [val, priceRange[1]] : [priceRange[0], val];
     setPriceRange(newRange);
     onFilterChange({ price: `${newRange[0]}-${newRange[1]}` });
   };
@@ -29,17 +28,17 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
     <div className="border p-3 rounded bg-light">
       <h5 className="fw-bold mb-3">Bộ lọc sản phẩm</h5>
 
-      {/* Tìm kiếm */}
+      {/* 🔍 Tìm kiếm */}
       <input
         type="text"
         name="search"
         value={filters.search || ""}
         onChange={handleChange}
         className="form-control mb-3"
-        placeholder="Tìm kiếm..."
+        placeholder="Tìm sản phẩm..."
       />
 
-      {/* Danh mục */}
+      {/* 🏷 Danh mục */}
       <div className="mb-3">
         <label className="form-label fw-bold">Danh mục</label>
         <select
@@ -49,44 +48,54 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
           onChange={handleChange}
         >
           <option value="">Tất cả</option>
-          <option value="phone">Điện thoại</option>
-          <option value="laptop">Laptop</option>
-          <option value="watch">Đồng hồ</option>
+          <option value="Thời trang nam">Thời trang nam</option>
+          <option value="Thời trang nữ">Thời trang nữ</option>
+          <option value="Phụ kiện">Phụ kiện</option>
         </select>
       </div>
-      {/* Mức giá */}
+
+      {/* 💰 Giá */}
       <div className="mb-3">
         <label className="form-label fw-bold">
-          Khoảng giá: {priceRange[0]}K
+          Giá: {priceRange[0].toLocaleString()}đ -{" "}
+          {priceRange[1].toLocaleString()}đ
         </label>
-        <div className="d-flex gap-2 align-items-center">
-          <input
-            type="range"
-            name="min"
-            min={0}
-            max={5000}
-            step={100}
-            value={priceRange[0]}
-            onChange={handlePriceChange}
-            className="custom-range w-100"
-          />
-        </div>
+        <input
+          type="range"
+          name="min"
+          min={0}
+          max={500000}
+          step={50000}
+          value={priceRange[0]}
+          onChange={handlePriceChange}
+          className="form-range"
+        />
+        <input
+          type="range"
+          name="max"
+          min={0}
+          max={500000}
+          step={50000}
+          value={priceRange[1]}
+          onChange={handlePriceChange}
+          className="form-range"
+        />
       </div>
 
-      {/* Màu sắc - dàn ngang */}
+      {/* 🎨 Màu sắc */}
       <div className="mb-3">
         <label className="form-label fw-bold d-block">Màu sắc</label>
         <div className="d-flex flex-wrap gap-2">
-          {["red", "black", "white", "blue", "green"].map((color) => (
+          {["black", "white", "brown", "blue", "red"].map((color) => (
             <label
               key={color}
-              className="form-check-label position-relative"
+              className="position-relative"
               style={{
                 width: 24,
                 height: 24,
                 borderRadius: "50%",
                 backgroundColor: color,
-                border: "2px solid #ccc",
+                border: "2px solid #ddd",
                 cursor: "pointer",
               }}
             >
@@ -94,7 +103,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
                 type="checkbox"
                 name="color"
                 value={color}
-                checked={filters.color?.includes(color) || false}
+                checked={filters.color?.split(",").includes(color) || false}
                 onChange={handleChange}
                 style={{
                   opacity: 0,
@@ -108,28 +117,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
         </div>
       </div>
 
-      {/* Loại */}
-      <div className="mb-3">
-        <label className="form-label fw-bold">Loại</label>
-        {["new", "hot", "sale"].map((type) => (
-          <div className="form-check" key={type}>
-            <input
-              className="form-check-input"
-              type="checkbox"
-              name="type"
-              id={type}
-              value={type}
-              checked={filters.type?.includes(type) || false}
-              onChange={handleChange}
-            />
-            <label className="form-check-label" htmlFor={type}>
-              {type.toUpperCase()}
-            </label>
-          </div>
-        ))}
-      </div>
-
-      {/* Size */}
+      {/* 📏 Size */}
       <div className="mb-3">
         <label className="form-label fw-bold">Size</label>
         {["S", "M", "L", "XL"].map((size) => (
@@ -140,7 +128,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
               name="size"
               id={size}
               value={size}
-              checked={filters.size?.includes(size) || false}
+              checked={filters.size?.split(",").includes(size) || false}
               onChange={handleChange}
             />
             <label className="form-check-label" htmlFor={size}>
@@ -150,7 +138,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
         ))}
       </div>
 
-      {/* Bộ sưu tập */}
+      {/* 🧥 Bộ sưu tập */}
       <div className="mb-3">
         <label className="form-label fw-bold">Bộ sưu tập</label>
         <select

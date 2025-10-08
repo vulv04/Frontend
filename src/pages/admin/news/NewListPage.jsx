@@ -8,9 +8,15 @@ import {
   Typography,
   Image,
 } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { getAllNews, deleteNews } from "../../../api/newsApi";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 
@@ -22,8 +28,8 @@ const NewListPage = () => {
   const fetchNews = async () => {
     setLoading(true);
     try {
-      const data = await getAllNews();
-      setNewsList(data);
+      const res = await getAllNews();
+      setNewsList(res?.data || []);
     } catch (error) {
       message.error("Lỗi khi tải danh sách tin tức");
     } finally {
@@ -74,12 +80,23 @@ const NewListPage = () => {
       key: "slug",
     },
     {
+      title: "Trạng thái",
+      dataIndex: "isPublished",
+      key: "isPublished",
+      render: (val) =>
+        val ? (
+          <span style={{ color: "green" }}>Đã xuất bản</span>
+        ) : (
+          <span style={{ color: "red" }}>Nháp</span>
+        ),
+    },
+    {
       title: "Ngày xuất bản",
       dataIndex: "publishedAt",
       key: "publishedAt",
       render: (date) =>
         date ? (
-          <span>{new Date(date).toLocaleString("vi-VN")}</span>
+          <span>{dayjs(date).format("DD/MM/YYYY HH:mm")}</span>
         ) : (
           <span style={{ color: "#999" }}>Chưa xuất bản</span>
         ),
@@ -101,7 +118,9 @@ const NewListPage = () => {
             okText="Xoá"
             cancelText="Hủy"
           >
-            <Button danger icon={<DeleteOutlined />} />
+            <Button danger icon={<DeleteOutlined />}>
+              Xoá
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -118,7 +137,11 @@ const NewListPage = () => {
           marginBottom: 16,
         }}
       >
-        <Title level={3}>Danh sách tin tức</Title>
+        <Space>
+          <Title level={3} style={{ margin: 0 }}>
+            Danh sách tin tức
+          </Title>
+        </Space>
         <Button
           type="primary"
           icon={<PlusOutlined />}

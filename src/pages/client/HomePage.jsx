@@ -11,6 +11,7 @@ import Banner from "../../components/banner/Banner";
 import { useNavigate } from "react-router-dom";
 import QuickViewModal from "../../components/QuickViewModal";
 import OneTimeComponents from "../../components/OneTimeComponents";
+import { Button, Rate, Card, Avatar } from "antd";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -35,7 +36,6 @@ const HomePage = () => {
 
         const { data } = await getProducts();
 
-        // Đảm bảo data luôn là array
         const productList = Array.isArray(data)
           ? data
           : Array.isArray(data?.products)
@@ -57,16 +57,43 @@ const HomePage = () => {
     fetchProducts();
   }, []);
 
-  const indexOfLast = currentPage * productsPerPage;
-  const indexOfFirst = indexOfLast - productsPerPage;
-  const currentItems = products.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(products.length / productsPerPage);
 
-  const handlePageChange = (pageNum) => {
-    if (pageNum < 1 || pageNum > totalPages) return;
-    setCurrentPage(pageNum);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // ✅ Hàm xem thêm (hiển thị thêm 1 trang sản phẩm mỗi lần bấm)
+  const handleShowMore = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
   };
+
+  // ✅ Tính danh sách sản phẩm đang hiển thị
+  const visibleItems = products.slice(0, currentPage * productsPerPage);
+
+  // ✅ Dữ liệu giả cho phần đánh giá
+  const reviews = [
+    {
+      id: 1,
+      name: "Nguyễn Văn A",
+      avatar: "https://i.pravatar.cc/100?img=1",
+      rating: 5,
+      comment: "Sản phẩm rất đẹp, chất lượng tốt, giao hàng nhanh!",
+    },
+    {
+      id: 2,
+      name: "Trần Thị B",
+      avatar: "https://i.pravatar.cc/100?img=2",
+      rating: 4,
+      comment: "Mình rất hài lòng, sẽ ủng hộ shop lần sau!",
+    },
+    {
+      id: 3,
+      name: "Lê Minh C",
+      avatar: "https://i.pravatar.cc/100?img=3",
+      rating: 5,
+      comment: "Áo vừa vặn, màu sắc như hình, đáng tiền lắm!",
+    },
+  ];
+
   return (
     <div>
       <Banner />
@@ -99,7 +126,7 @@ const HomePage = () => {
         <div className="row">
           {!loading &&
             !error &&
-            currentItems.map((product, index) => {
+            visibleItems.map((product, index) => {
               const { id, _id, title, thumbnail, price, images } = product;
               return (
                 <div
@@ -132,52 +159,40 @@ const HomePage = () => {
           onClose={() => setQuickViewProduct(null)}
         />
 
-        {!loading && !error && totalPages > 1 && (
-          <nav>
-            <ul className="pagination justify-content-center">
-              <li
-                className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-              >
-                <span
-                  className="page-link"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  {t("previous")}
-                </span>
-              </li>
-              {[...Array(totalPages)].map((_, i) => (
-                <li
-                  key={i + 1}
-                  className={`page-item ${
-                    currentPage === i + 1 ? "active" : ""
-                  }`}
-                >
-                  <span
-                    className="page-link"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handlePageChange(i + 1)}
-                  >
-                    {i + 1}
-                  </span>
-                </li>
-              ))}
-              <li
-                className={`page-item ${
-                  currentPage === totalPages ? "disabled" : ""
-                }`}
-              >
-                <span
-                  className="page-link"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  {t("next")}
-                </span>
-              </li>
-            </ul>
-          </nav>
+        {/* ✅ Nút Xem thêm */}
+        {!loading && !error && visibleItems.length < products.length && (
+          <div className="text-center mt-4">
+            <Button
+              type="primary"
+              shape="round"
+              size="large"
+              onClick={handleShowMore}
+            >
+              Xem thêm
+            </Button>
+          </div>
         )}
+      </section>
+
+      {/* ✅ Phần đánh giá khách hàng */}
+      <section className="container my-5">
+        <h2 className="text-center mb-4 fw-bold">Đánh giá từ khách hàng</h2>
+        <div className="row g-4">
+          {reviews.map((r) => (
+            <div key={r.id} className="col-12 col-md-4">
+              <Card bordered className="shadow-sm rounded-4 h-100">
+                <div className="d-flex align-items-center mb-3">
+                  <Avatar src={r.avatar} size={48} className="me-3" />
+                  <div>
+                    <h6 className="mb-0 fw-bold">{r.name}</h6>
+                    <Rate disabled defaultValue={r.rating} />
+                  </div>
+                </div>
+                <p className="text-muted fst-italic">"{r.comment}"</p>
+              </Card>
+            </div>
+          ))}
+        </div>
       </section>
 
       <FeaturedProducts />

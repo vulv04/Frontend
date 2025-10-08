@@ -18,6 +18,7 @@ import ShopPage from "../pages/client/ShopPage";
 import BlogDetailPage from "../components/blogs/BlogDetailPage";
 import CategoriesPage from "../pages/client/CategoriesPage";
 import OrderHistoryPage from "../pages/client/OrderHistoryPage";
+import NewsDetailPage from "../components/news/NewsDetailPage";
 
 export const clientRoutes = [
   // common
@@ -43,7 +44,10 @@ export const clientRoutes = [
   // blog
   { path: "blogs", element: <BlogListPage /> },
   { path: "blogs/:slug", element: <BlogDetailPage /> },
+
+  // news
   { path: "news", element: <NewsPage /> },
+  { path: "news/:id", element: <NewsDetailPage /> },
 
   // user
   { path: "/me/profile/:id", element: <ProfilePage /> },
