@@ -1,33 +1,72 @@
-
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Button,
-  Input,
-  Select,
-  Spin,
   Image,
   Tag,
-  message,
+  Space,
   Popconfirm,
+  message,
+  Card,
+  Tabs,
+  Input,
+  Select,
 } from "antd";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ReloadOutlined,
+  RollbackOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import { deleteProduct, getProducts } from "../../../api/productApi";
 
 const { Option } = Select;
 
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+  const [activeTab, setActiveTab] = useState("active");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState();
+  const [sortOrder, setSortOrder] = useState();
   const navigate = useNavigate();
 
-  const limit = 5;
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getProducts();
+      const data = res.data;
+      const productList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.products)
+        ? data.products
+        : typeof data === "object" && data !== null
+        ? Object.values(data)
+        : [];
+      setProducts(productList);
+    } catch {
+      message.error("Lỗi khi tải danh sách sản phẩm");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSoftDelete = async (id) => {
+    try {
+      await deleteProduct(id);
+      message.success("Đã chuyển sản phẩm vào thùng rác!");
+      fetchData();
+    } catch {
+      message.error("Xóa mềm thất bại!");
+    }
+  };
 
   const formatDate = (date) => {
     if (!date) return "Không rõ";
@@ -43,50 +82,12 @@ const ProductListPage = () => {
     }).format(d);
   };
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const res = await getProducts();
-      const data = res.data;
-      const productList = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.products)
-        ? data.products
-        : typeof data === "object" && data !== null
-        ? Object.values(data)
-        : [];
-
-      setProducts(productList.filter((p) => !p.isDeleted));
-    } catch {
-      message.error("Lỗi khi tải danh sách sản phẩm");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleDelete = async (id) => {
-    const confirm = window.confirm("Bạn có chắc muốn xoá mềm sản phẩm này?");
-    if (!confirm) return;
-
-    setDeletingId(id);
-    try {
-      await deleteProduct(id);
-      message.success("Đã chuyển vào thùng rác!");
-      await fetchData();
-    } catch {
-      message.error("Xoá mềm thất bại!");
-    }
-    setDeletingId(null);
-  };
-
+  // Lọc dữ liệu
   const filtered = products.filter((p) =>
     (p.title || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Sắp xếp
   const sorted = [...filtered].sort((a, b) => {
     if (!sortBy) return 0;
     let valA = a[sortBy];
@@ -98,144 +99,137 @@ const ProductListPage = () => {
     return sortOrder === "asc" ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
   });
 
-  const paginated = sorted.slice((page - 1) * limit, page * limit);
+  const activeProducts = sorted.filter((p) => !p.isDeleted);
+  const trashProducts = sorted.filter((p) => p.isDeleted);
 
   const columns = [
     {
-      title: "Tên",
-      dataIndex: "title",
-      key: "title",
-    },
-    {
-      title: "Slug",
-      dataIndex: "slug",
-      key: "slug",
-    },
-    {
-      title: "Giá",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => `${price?.toLocaleString()}₫`,
-    },
-    {
-      title: "Danh mục",
-      dataIndex: "category",
-      key: "category",
-    },
-    {
-      title: "Thương hiệu",
-      dataIndex: "brand",
-      key: "brand",
-    },
-    {
       title: "Ảnh",
       dataIndex: "images",
-      key: "images",
-      render: (imgs, record) => (
-        <Image
-          src={imgs?.[0] || "/no-image.jpg"}
-          fallback="/no-image.jpg"
-          width={60}
-          height={60}
-          style={{ objectFit: "cover" }}
-        />
-      ),
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (date) => formatDate(date),
-    },
-    {
-      title: "Biến thể",
-      key: "variants",
-      render: (_, record) =>
-        record.variants?.length ? (
-          <Table
-            dataSource={record.variants.map((v, i) => ({ ...v, key: i }))}
-            pagination={false}
-            size="small"
-            columns={[
-              {
-                title: "Màu",
-                dataIndex: "color",
-                render: (color) => (
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: "50%",
-                      backgroundColor: color,
-                      border: "1px solid #ccc",
-                    }}
-                  />
-                ),
-              },
-              { title: "Size", dataIndex: "size" },
-              { title: "Kho", dataIndex: "stock" },
-            ]}
+      align: "center",
+      render: (imgs) =>
+        imgs?.[0] ? (
+          <Image
+            src={imgs[0]}
+            width={60}
+            height={60}
+            style={{ objectFit: "cover", borderRadius: 8 }}
           />
         ) : (
           <Tag color="default">Không có</Tag>
         ),
     },
     {
-      title: "Thao tác",
+      title: "Tên",
+      dataIndex: "title",
+      render: (text) => <strong>{text}</strong>,
+    },
+    {
+      title: "Slug",
+      dataIndex: "slug",
+    },
+    {
+      title: "Giá",
+      dataIndex: "price",
+      render: (price) => `${price?.toLocaleString()}₫`,
+    },
+    {
+      title: "Danh mục",
+      dataIndex: "category",
+      render: (cat) => cat || <Tag color="default">Không có</Tag>,
+    },
+    {
+      title: "Thương hiệu",
+      dataIndex: "brand",
+      render: (brand) => brand || <Tag color="default">Không có</Tag>,
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      render: (date) => formatDate(date),
+    },
+    {
+      title: "Hành động",
       key: "actions",
+      fixed: "right",
       render: (_, record) => (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button
-            size="small"
-            onClick={() => navigate(`/admin/products/${record._id}`)}
-          >
-            👁️ Xem
-          </Button>
-          <Button
-            size="small"
-            type="primary"
-            onClick={() => navigate(`/admin/products/edit/${record._id}`)}
-          >
-            <FaEdit /> Sửa
-          </Button>
-          <Popconfirm
-            title="Bạn có chắc muốn xoá mềm sản phẩm này không?"
-            onConfirm={() => handleDelete(record._id)}
-          >
-            <Button size="small" danger loading={deletingId === record._id}>
-              🗑️ Xoá mềm
-            </Button>
-          </Popconfirm>
-        </div>
+        <Space>
+          {!record.isDeleted ? (
+            <>
+              <Button
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => navigate(`/admin/products/${record._id}`)}
+              >
+                Xem
+              </Button>
+              <Button
+                type="primary"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/admin/products/edit/${record._id}`)}
+              >
+                Sửa
+              </Button>
+              <Popconfirm
+                title="Chuyển sản phẩm vào thùng rác?"
+                onConfirm={() => handleSoftDelete(record._id)}
+              >
+                <Button danger size="small" icon={<DeleteOutlined />}>
+                  Xóa mềm
+                </Button>
+              </Popconfirm>
+            </>
+          ) : (
+            <>
+              <Button
+                type="dashed"
+                size="small"
+                icon={<RollbackOutlined />}
+                onClick={() => message.info("Khôi phục sản phẩm (demo)")}
+              >
+                Khôi phục
+              </Button>
+              <Popconfirm
+                title="Xóa vĩnh viễn sản phẩm này?"
+                onConfirm={() => message.info("Xóa vĩnh viễn (demo)")}
+              >
+                <Button danger size="small">
+                  Xóa vĩnh viễn
+                </Button>
+              </Popconfirm>
+            </>
+          )}
+        </Space>
       ),
     },
   ];
 
   return (
-    <div className="container py-4">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Danh sách sản phẩm</h2>
-
-        <div style={{ display: "flex", gap: 12 }}>
-          <Link to="/admin/products/trash">
-            <Button danger icon={<FaTrash />}>
-              Thùng rác
+    <Card
+      title="Quản lý sản phẩm"
+      extra={
+        <Space>
+          {activeTab === "active" && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/admin/products/add")}
+            >
+              Thêm sản phẩm
             </Button>
-          </Link>
-          <Link to="/admin/products/add">
-            <Button type="primary">Thêm sản phẩm</Button>
-          </Link>
-        </div>
-      </div>
+          )}
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={fetchData}
+            loading={loading}
+          >
+            Làm mới
+          </Button>
+        </Space>
+      }
+      className="shadow-md rounded-xl"
+    >
       <div
         style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}
       >
@@ -247,7 +241,7 @@ const ProductListPage = () => {
         />
         <Select
           placeholder="Sắp xếp theo"
-          value={sortBy}
+          value={sortBy || undefined}
           onChange={(val) => setSortBy(val)}
           style={{ width: 150 }}
         >
@@ -257,46 +251,50 @@ const ProductListPage = () => {
         </Select>
         <Select
           placeholder="Thứ tự"
-          value={sortOrder}
+          value={sortOrder || undefined}
           onChange={(val) => setSortOrder(val)}
-          style={{ width: 120 }}
+          style={{ width: 150 }}
         >
           <Option value="asc">Tăng dần</Option>
           <Option value="desc">Giảm dần</Option>
         </Select>
       </div>
 
-      {loading ? (
-        <div className="text-center py-5">
-          <Spin size="large" />
-        </div>
-      ) : (
-        <Table
-          columns={columns}
-          dataSource={paginated}
-          rowKey="_id"
-          pagination={false}
-          bordered
-        />
-      )}
-
-      <div className="text-center mt-4">
-        <Button
-          disabled={page <= 1}
-          onClick={() => setPage((p) => p - 1)}
-          style={{ marginRight: 8 }}
-        >
-          ← Trước
-        </Button>
-        <span style={{ margin: "0 12px" }}>Trang {page}</span>
-        <Button
-          disabled={page * limit >= sorted.length}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Sau →
-        </Button>
-      </div>
-    </div>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: "active",
+            label: "Danh sách hoạt động",
+            children: (
+              <Table
+                bordered
+                rowKey="_id"
+                columns={columns}
+                dataSource={activeProducts}
+                loading={loading}
+                pagination={{ pageSize: 8 }}
+              />
+            ),
+          },
+          {
+            key: "trash",
+            label: "Thùng rác",
+            children: (
+              <Table
+                bordered
+                rowKey="_id"
+                columns={columns}
+                dataSource={trashProducts}
+                loading={loading}
+                pagination={{ pageSize: 8 }}
+              />
+            ),
+          },
+        ]}
+      />
+    </Card>
   );
 };
 
