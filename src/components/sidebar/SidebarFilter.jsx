@@ -5,16 +5,29 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (type === "checkbox") {
+
+    if (name === "color") {
+      // chỉ cho chọn 1 màu, click lại thì bỏ chọn
+      if (filters.color === value) {
+        onFilterChange({ [name]: "" });
+      } else {
+        onFilterChange({ [name]: value });
+      }
+    } else if (type === "checkbox") {
+      // giữ nguyên logic cho các filter khác có nhiều lựa chọn
       const current = filters[name]?.split(",") || [];
       const updated = checked
         ? [...current, value]
         : current.filter((v) => v !== value);
       onFilterChange({ [name]: updated.length ? updated.join(",") : "" });
     } else {
+      // input thường
       onFilterChange({ [name]: value });
     }
   };
+  
+  
+  
 
   const handlePriceChange = (e) => {
     const val = +e.target.value;
@@ -28,7 +41,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
     <div className="border p-3 rounded bg-light">
       <h5 className="fw-bold mb-3">Bộ lọc sản phẩm</h5>
 
-      {/* 🔍 Tìm kiếm */}
+      {/* Tìm kiếm */}
       <input
         type="text"
         name="search"
@@ -54,7 +67,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
         </select>
       </div>
 
-      {/* 💰 Giá */}
+      {/* Giá */}
       <div className="mb-3">
         <label className="form-label fw-bold">
           Giá: {priceRange[0].toLocaleString()}đ -{" "}
@@ -82,42 +95,57 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
         />
       </div>
 
-      {/* 🎨 Màu sắc */}
+      {/* Màu sắc */}
       <div className="mb-3">
         <label className="form-label fw-bold d-block">Màu sắc</label>
         <div className="d-flex flex-wrap gap-2">
-          {["black", "white", "brown", "blue", "red"].map((color) => (
-            <label
-              key={color}
-              className="position-relative"
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: "50%",
-                backgroundColor: color,
-                border: "2px solid #ddd",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                name="color"
-                value={color}
-                checked={filters.color?.split(",").includes(color) || false}
-                onChange={handleChange}
+          {["black", "white", "brown", "blue", "red"].map((color) => {
+            const isChecked = filters.color === color;
+            return (
+              <label
+                key={color}
+                className="position-relative d-inline-block"
                 style={{
-                  opacity: 0,
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  border: isChecked ? "3px solid #1890ff" : "2px solid #ddd",
+                  boxShadow: isChecked
+                    ? "0 0 0 4px rgba(24, 144, 255, 0.3)"
+                    : "none",
+                  transition: "all 0.2s ease",
                 }}
-              />
-            </label>
-          ))}
+              >
+                <div
+                  style={{
+                    backgroundColor: color,
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "50%",
+                  }}
+                ></div>
+
+                <input
+                  type="checkbox" // đổi sang checkbox để bắt được click lại
+                  name="color"
+                  value={color}
+                  checked={isChecked}
+                  onChange={handleChange}
+                  style={{
+                    opacity: 0,
+                    position: "absolute",
+                    inset: 0,
+                    cursor: "pointer",
+                  }}
+                />
+              </label>
+            );
+          })}
         </div>
       </div>
 
-      {/* 📏 Size */}
+      {/* Size */}
       <div className="mb-3">
         <label className="form-label fw-bold">Size</label>
         {["S", "M", "L", "XL"].map((size) => (
@@ -138,7 +166,7 @@ const SidebarFilter = ({ filters, onFilterChange }) => {
         ))}
       </div>
 
-      {/* 🧥 Bộ sưu tập */}
+      {/* Bộ sưu tập */}
       <div className="mb-3">
         <label className="form-label fw-bold">Bộ sưu tập</label>
         <select

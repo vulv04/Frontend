@@ -18,28 +18,46 @@ const CategoryFormPage = () => {
     handleSubmit,
     setValue,
     formState: { errors },
+    watch,
   } = useForm();
 
-  // Load dữ liệu khi có id (chế độ sửa)
+  // 🔹 Tự sinh slug khi title thay đổi
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === "title") {
+        const title = value.title?.trim() || "";
+        if (title === "") {
+          setValue("slug", "");
+        } else {
+          const slug = title
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // bỏ dấu tiếng Việt
+            .replace(/[^a-z0-9\s-]/g, "")
+            .trim()
+            .replace(/\s+/g, "-");
+          setValue("slug", slug);
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, setValue]);
+
+  // 🔹 Nếu có id → load dữ liệu để sửa
   useEffect(() => {
     if (id) {
       getCategoryById(id)
         .then((res) => {
           const data = res.data?.data || res.data;
           Object.keys(data).forEach((key) => {
-            if (key === "isActive") {
-              setValue(key, Boolean(data[key]));
-            } else {
-              setValue(key, data[key]);
-            }
+            setValue(key, data[key]);
           });
         })
         .catch(() => message.error("Không tải được danh mục"));
     }
   }, [id, setValue]);
-  
 
-  // Submit thêm hoặc cập nhật
+  // 🔹 Xử lý submit thêm/sửa
   const onSubmit = async (data) => {
     try {
       if (id) {
@@ -55,7 +73,7 @@ const CategoryFormPage = () => {
     }
   };
 
-  // Xử lý xóa danh mục
+  // 🔹 Xử lý xóa danh mục
   const handleDelete = async () => {
     if (window.confirm("Bạn có chắc chắn muốn xoá danh mục này?")) {
       try {
@@ -92,25 +110,10 @@ const CategoryFormPage = () => {
           )}
         </div>
 
-        <div className="form-check mb-3">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            {...register("isActive")}
-            id="isActive"
-          />
-          <label className="form-check-label" htmlFor="isActive">
-            Hiển thị danh mục
-          </label>
-        </div>
-
+        {/* Slug readonly */}
         <div className="mb-3">
           <label className="form-label">Slug</label>
-          <input
-            className="form-control"
-            {...register("slug", { required: "Bắt buộc nhập slug" })}
-          />
-          {errors.slug && <p className="text-danger">{errors.slug.message}</p>}
+          <input className="form-control" {...register("slug")} readOnly />
         </div>
 
         <div className="mb-3">
