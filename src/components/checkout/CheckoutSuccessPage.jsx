@@ -1,6 +1,6 @@
 import React from "react";
 import { Result, Button, Typography } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 const { Paragraph, Text } = Typography;
 
@@ -9,7 +9,6 @@ const CheckoutSuccessPage = () => {
   const navigate = useNavigate();
 
   const goHome = () => navigate("/");
-  const goToOrders = () => navigate("/orders");
 
   return (
     <div style={{ padding: "48px 16px", minHeight: "80vh" }}>
@@ -21,9 +20,9 @@ const CheckoutSuccessPage = () => {
           <Button type="primary" key="home" onClick={goHome}>
             Về trang chủ
           </Button>,
-          <Button key="orders" onClick={goToOrders}>
-            Xem đơn hàng của tôi
-          </Button>,
+           <Link to={`/orders/${orderId}`}>
+            <Button key="orders">Xem đơn hàng của tôi</Button>,
+          </Link>,
         ]}
       >
         {orderId && (

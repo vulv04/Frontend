@@ -19,6 +19,7 @@ import BlogDetailPage from "../components/blogs/BlogDetailPage";
 import CategoriesPage from "../pages/client/CategoriesPage";
 import OrderHistoryPage from "../pages/client/OrderHistoryPage";
 import NewsDetailPage from "../components/news/NewsDetailPage";
+import OrderDetailPage from "../pages/client/OrderDetailPage";
 
 export const clientRoutes = [
   // common
@@ -56,4 +57,5 @@ export const clientRoutes = [
 
   //order
   { path: "/orders/history", element: <OrderHistoryPage /> },
+  { path: "/orders/:id", element: <OrderDetailPage /> },
 ];

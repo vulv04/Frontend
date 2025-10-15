@@ -73,13 +73,9 @@ const Badge = styled.span`
 `;
 const DropdownWrapper = styled.div`
   position: relative;
-  &:hover .dropdown-content {
-    display: block;
-  }
 `;
 
 const DropdownContent = styled.ul`
-  display: none;
   position: absolute;
   right: 0;
   top: 100%;
@@ -96,10 +92,6 @@ const DropdownContent = styled.ul`
     padding: 10px 15px;
     cursor: pointer;
     white-space: nowrap;
-
-    &:hover {
-      background-color: #f1f1f1;
-    }
   }
 `;
 
@@ -145,25 +137,35 @@ const SearchWrapper = styled.div`
 
 const Header = () => {
   const navigate = useNavigate();
-  const { lang, setLang } = useLanguage(); // 👈 Lấy thêm setLang
+  const { lang, setLang } = useLanguage(); // Lấy thêm setLang
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const searchRef = useRef();
-  const t = (key) => translations[lang][key] || key; // 👈 Tạo hàm t()
+  const t = (key) => translations[lang][key] || key; // Tạo hàm t()
   const user = JSON.parse(localStorage.getItem("user"));
   const { totalQuantity } = useCart();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowSearch(false);
+      if (!e.target.closest(".user-dropdown")) {
+        setShowUserDropdown(false);
       }
     };
 
+    const handleScroll = () => {
+      setShowUserDropdown(false);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+  
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
@@ -255,8 +257,10 @@ const Header = () => {
                   )}
                 </DropdownWrapper>
 
-                <DropdownWrapper>
-                  <IconWrapper>
+                <DropdownWrapper className="user-dropdown">
+                  <IconWrapper
+                    onClick={() => setShowUserDropdown((prev) => !prev)}
+                  >
                     {user ? (
                       <img
                         src={`https://ui-avatars.com/api/?name=${
@@ -270,26 +274,32 @@ const Header = () => {
                       <FiUser />
                     )}
                   </IconWrapper>
-                  <DropdownContent className="dropdown-content">
-                    {user ? (
-                      <>
-                        <li onClick={() => navigate(`/me/profile/${user._id}`)}>
-                          {t("profile")}
-                        </li>
-                        <li onClick={handleLogout}>{t("logout")}</li>
-                      </>
-                    ) : (
-                      <>
-                        <li onClick={() => navigate("/api/auth/login")}>
-                          {t("login")}
-                        </li>
-                        <li onClick={() => navigate("/api/auth/register")}>
-                          {t("register")}
-                        </li>
-                      </>
-                    )}
-                  </DropdownContent>
+
+                  {showUserDropdown && (
+                    <DropdownContent>
+                      {user ? (
+                        <>
+                          <li
+                            onClick={() => navigate(`/me/profile/${user._id}`)}
+                          >
+                            {t("profile")}
+                          </li>
+                          <li onClick={handleLogout}>{t("logout")}</li>
+                        </>
+                      ) : (
+                        <>
+                          <li onClick={() => navigate("/api/auth/login")}>
+                            {t("login")}
+                          </li>
+                          <li onClick={() => navigate("/api/auth/register")}>
+                            {t("register")}
+                          </li>
+                        </>
+                      )}
+                    </DropdownContent>
+                  )}
                 </DropdownWrapper>
+
                 <IconWrapper>
                   <FiHeart />
                   <Badge>0</Badge>

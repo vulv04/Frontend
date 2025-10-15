@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Table, Tag, message, Spin, Empty, Button, Modal, Input } from "antd";
+import {
+  Table,
+  Tag,
+  message,
+  Spin,
+  Empty,
+  Button,
+  Modal,
+  Input,
+  Card,
+  Typography,
+  Space,
+  Divider,
+} from "antd";
 import { Link } from "react-router-dom";
 import { getAllOrders, cancelOrder } from "../../api/orderApi";
+import {
+  FileTextOutlined,
+  ShoppingOutlined,
+  StopOutlined,
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
 
 const OrderHistoryPage = () => {
   const [orders, setOrders] = useState([]);
@@ -24,6 +44,15 @@ const OrderHistoryPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const showCancelModal = (orderId) => {
+    setSelectedOrderId(orderId);
+    setCancelModalVisible(true);
+  };
+
   const handleCancelOrder = async () => {
     if (!cancelReason.trim()) {
       message.warning("Vui lòng nhập lý do hủy đơn hàng.");
@@ -31,10 +60,9 @@ const OrderHistoryPage = () => {
     }
 
     try {
-      const res = await cancelOrder(selectedOrderId, { reason: cancelReason });
-      console.log(res);
+      await cancelOrder(selectedOrderId, { reason: cancelReason });
       message.success("Đã hủy đơn hàng thành công.");
-      fetchOrders(); // refresh lại danh sách
+      fetchOrders();
       setCancelModalVisible(false);
       setCancelReason("");
       setSelectedOrderId(null);
@@ -43,25 +71,35 @@ const OrderHistoryPage = () => {
     }
   };
 
-  const showCancelModal = (orderId) => {
-    setSelectedOrderId(orderId);
-    setCancelModalVisible(true);
+  const renderStatusTag = (status) => {
+    const map = {
+      pending: { color: "orange", label: "Chờ xác nhận" },
+      processing: { color: "blue", label: "Đang xử lý" },
+      shipping: { color: "geekblue", label: "Đang giao hàng" },
+      completed: { color: "green", label: "Hoàn thành" },
+      cancelled: { color: "red", label: "Đã hủy" },
+    };
+    const { color, label } = map[status] || {
+      color: "default",
+      label: "Không xác định",
+    };
+    return <Tag color={color}>{label}</Tag>;
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
   const columns = [
     {
       title: "Mã đơn hàng",
       dataIndex: "_id",
-      render: (id) => <strong>{id.slice(-6).toUpperCase()}</strong>,
+      render: (id) => (
+        <Text strong style={{ color: "#1677ff" }}>
+          #{id.slice(-6).toUpperCase()}
+        </Text>
+      ),
     },
     {
       title: "Ngày đặt",
       dataIndex: "createdAt",
-      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
+      render: (date) => <Text>{new Date(date).toLocaleString("vi-VN")}</Text>,
     },
     {
       title: "Sản phẩm",
@@ -69,7 +107,15 @@ const OrderHistoryPage = () => {
       render: (items) => (
         <div>
           {items?.map((item, index) => (
-            <div key={index} className="flex items-center gap-2 mb-2">
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 6,
+              }}
+            >
               <img
                 src={
                   item.productId?.thumbnail ||
@@ -78,20 +124,20 @@ const OrderHistoryPage = () => {
                 }
                 alt={item.productId?.title || "Ảnh sản phẩm"}
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 45,
+                  height: 45,
+                  borderRadius: 8,
                   objectFit: "cover",
-                  borderRadius: 4,
+                  border: "1px solid #f0f0f0",
                 }}
               />
               <div>
-                <div>
-                  <strong>{item.productId?.title || "Không xác định"}</strong>
-                </div>
-                <div>
-                  Màu: {item.color || "N/A"} - Size: {item.size || "N/A"} - SL:{" "}
+                <Text strong>{item.productId?.title || "Không xác định"}</Text>
+                <br />
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Màu: {item.color || "N/A"} | Size: {item.size || "N/A"} | SL:{" "}
                   {item.quantity}
-                </div>
+                </Text>
               </div>
             </div>
           ))}
@@ -101,58 +147,80 @@ const OrderHistoryPage = () => {
     {
       title: "Tổng tiền",
       dataIndex: "totalPrice",
-      render: (total) => <span>{total?.toLocaleString("vi-VN")}₫</span>,
+      render: (total) => <Text strong>{total?.toLocaleString("vi-VN")} ₫</Text>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
-      render: (status) => {
-        let color = "default";
-        if (status === "pending") color = "orange";
-        else if (status === "completed") color = "green";
-        else if (status === "cancelled") color = "red";
-
-        return <Tag color={color}>{status?.toUpperCase() || "N/A"}</Tag>;
-      },
+      render: renderStatusTag,
     },
     {
       title: "Hành động",
       render: (_, order) => (
-        <div>
+        <Space>
           <Link to={`/orders/${order._id}`}>
-            <Button type="link">Xem chi tiết</Button>
+            <Button
+              type="primary"
+              icon={<FileTextOutlined />}
+              size="small"
+              style={{ borderRadius: 6 }}
+            >
+              Chi tiết
+            </Button>
           </Link>
           {order.status === "pending" && (
             <Button
               danger
-              type="link"
+              type="default"
+              icon={<StopOutlined />}
+              size="small"
               onClick={() => showCancelModal(order._id)}
+              style={{ borderRadius: 6 }}
             >
               Hủy đơn
             </Button>
           )}
-        </div>
+        </Space>
       ),
     },
   ];
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 16px" }}>
-      <h1>Lịch sử đơn hàng</h1>
+    <div style={{ maxWidth: 1100, margin: "40px auto", padding: "0 16px" }}>
+      <Card
+        title={
+          <Space>
+            <ShoppingOutlined style={{ color: "#1677ff" }} />
+            <Title level={4} style={{ margin: 0 }}>
+              Lịch sử đơn hàng
+            </Title>
+          </Space>
+        }
+        bordered={false}
+        className="shadow-md"
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+        }}
+      >
+        <Divider style={{ margin: "12px 0 24px 0" }} />
 
-      {loading ? (
-        <Spin tip="Đang tải..." />
-      ) : orders.length === 0 ? (
-        <Empty description="Chưa có đơn hàng nào" />
-      ) : (
-        <Table
-          columns={columns}
-          dataSource={orders}
-          rowKey="_id"
-          pagination={{ pageSize: 5 }}
-          scroll={{ x: true }}
-        />
-      )}
+        {loading ? (
+          <div style={{ textAlign: "center", padding: 50 }}>
+            <Spin size="large" tip="Đang tải đơn hàng..." />
+          </div>
+        ) : orders.length === 0 ? (
+          <Empty description="Chưa có đơn hàng nào" />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={orders}
+            rowKey="_id"
+            pagination={{ pageSize: 5, showSizeChanger: false }}
+            scroll={{ x: true }}
+          />
+        )}
+      </Card>
 
       <Modal
         title="Hủy đơn hàng"
