@@ -5,29 +5,38 @@ import {
   Tag,
   Select,
   message,
-  Typography,
-  Spin,
+  Input,
   Button,
+  Space,
+  Spin,
 } from "antd";
+import {
+  ReloadOutlined,
+  EyeOutlined,
+  ShoppingOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { getAllOrders, updateOrderStatus } from "../../api/orderApi";
 
-const { Title } = Typography;
 const { Option } = Select;
 
+// ✅ Danh sách trạng thái khớp với backend
 const statusOptions = [
-  "pending",
-  "processing",
-  "shipping",
-  "completed",
-  "cancelled",
+  { value: "pending", label: "Chờ xác nhận" },
+  { value: "processing", label: "Đang xử lý" },
+  { value: "delivering", label: "Đang giao hàng" },
+  { value: "delivered", label: "Đã giao hàng" },
+  { value: "completed", label: "Hoàn thành" },
+  { value: "cancelled", label: "Đã hủy" },
 ];
 
+// ✅ Màu trạng thái
 const statusColorMap = {
   pending: "default",
   processing: "blue",
-  shipping: "orange",
+  delivering: "orange",
+  delivered: "gold",
   completed: "green",
   cancelled: "red",
 };
@@ -35,6 +44,7 @@ const statusColorMap = {
 const OrderListPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
   const navigate = useNavigate();
@@ -43,7 +53,8 @@ const OrderListPage = () => {
     setLoading(true);
     try {
       const res = await getAllOrders({ status: filter });
-      setOrders(res.data || []);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setOrders(data);
     } catch (err) {
       message.error("Không thể tải danh sách đơn hàng");
     } finally {
@@ -56,139 +67,144 @@ const OrderListPage = () => {
   }, [filter]);
 
   const handleStatusChange = async (orderId, currentStatus, newStatus) => {
-    const currentIdx = statusOptions.indexOf(currentStatus);
-    const newIdx = statusOptions.indexOf(newStatus);
+    // Ngăn quay lại trạng thái trước
+    const orderFlow = [
+      "pending",
+      "processing",
+      "delivering",
+      "delivered",
+      "completed",
+      "cancelled",
+    ];
+    const currentIdx = orderFlow.indexOf(currentStatus);
+    const newIdx = orderFlow.indexOf(newStatus);
+
     if (newIdx < currentIdx) {
-      return message.warning("Không thể chuyển về trạng thái trước!");
+      return message.warning("Không thể quay lại trạng thái trước đó!");
+    }
+
+    // Không cho thay đổi nếu đơn đã hủy hoặc hoàn thành
+    if (["cancelled", "completed"].includes(currentStatus)) {
+      return message.info("Đơn hàng này đã hoàn tất, không thể thay đổi.");
     }
 
     setUpdatingId(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
-      message.success("Đã cập nhật trạng thái");
+      message.success("Cập nhật trạng thái thành công");
       fetchOrders();
-    } catch {
+    } catch (err) {
       message.error("Cập nhật trạng thái thất bại");
+    } finally {
+      setUpdatingId(null);
     }
-    setUpdatingId(null);
   };
+
+  // Lọc tìm kiếm (tên KH hoặc mã đơn)
+  const filteredOrders = orders.filter(
+    (o) =>
+      (o.shippingAddress?.fullName || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (String(o.orderCode) || o._id)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+  );
 
   const columns = [
     {
-      title: "Mã đơn",
+      title: "Mã đơn hàng",
       dataIndex: "orderCode",
-      key: "orderCode",
       render: (code, record) =>
         code || record._id?.slice(-6)?.toUpperCase() || "N/A",
     },
     {
       title: "Khách hàng",
       dataIndex: ["shippingAddress", "fullName"],
-      key: "customer",
+      render: (name, record) => (
+        <>
+          <strong>{name}</strong>
+          <div>{record.shippingAddress?.phone}</div>
+        </>
+      ),
     },
     {
       title: "Ngày đặt",
       dataIndex: "createdAt",
-      key: "createdAt",
       render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
-      key: "status",
-      render: (status, record) => {
-        const currentIdx = statusOptions.indexOf(status);
-        return (
-          <>
-            <Select
-              size="small"
-              value={status}
-              style={{ minWidth: 120 }}
-              loading={updatingId === record._id}
-              onChange={(val) => handleStatusChange(record._id, status, val)}
-            >
-              {statusOptions.map((s, idx) => (
-                <Option key={s} value={s} disabled={idx < currentIdx}>
-                  {s}
-                </Option>
-              ))}
-            </Select>
-            <br />
-            <Tag color={statusColorMap[status]} className="mt-1">
-              {status}
-            </Tag>
-          </>
-        );
-      },
+      render: (status, record) => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            alignItems: "flex-start",
+          }}
+        >
+          <Select
+            size="small"
+            value={status}
+            style={{ minWidth: 130 }}
+            loading={updatingId === record._id}
+            onChange={(val) => handleStatusChange(record._id, status, val)}
+          >
+            {statusOptions.map((opt) => (
+              <Option
+                key={opt.value}
+                value={opt.value}
+                disabled={
+                  statusOptions.findIndex((s) => s.value === opt.value) <
+                  statusOptions.findIndex((s) => s.value === status)
+                }
+              >
+                {opt.label}
+              </Option>
+            ))}
+          </Select>
+          <Tag color={statusColorMap[status]}>
+            {statusOptions.find((s) => s.value === status)?.label}
+          </Tag>
+        </div>
+      ),
     },
     {
       title: "Thanh toán",
-      key: "payment",
       render: (_, order) => (
-        <>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+          }}
+        >
           <Tag color={order.isPaid ? "green" : "orange"}>
             {order.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
           </Tag>
-          <br />
           <Tag color={order.paymentMethod === "PayOS" ? "purple" : "cyan"}>
-            {order.paymentMethod || "COD"}
+            {order.paymentMethod === "PayOS" ? "PayOS" : "COD"}
           </Tag>
-        </>
+        </div>
       ),
     },
     {
       title: "Tổng tiền",
       dataIndex: "totalPrice",
-      key: "totalPrice",
       render: (price) => `${price?.toLocaleString()}₫`,
-    },
-    {
-      title: "Sản phẩm",
-      dataIndex: "orderItems",
-      key: "items",
-      render: (items) =>
-        items?.map((item, idx) => (
-          <div key={idx}>
-            {item.name} x {item.quantity}
-          </div>
-        )),
-    },
-    {
-      title: "Giao hàng",
-      key: "shipping",
-      render: (_, order) => {
-        const addr = order.shippingAddress || {};
-        return (
-          <>
-            <div>
-              <strong>Họ tên:</strong> {addr.fullName}
-            </div>
-            <div>
-              <strong>SĐT:</strong> {addr.phone}
-            </div>
-            <div>
-              <strong>Địa chỉ:</strong>{" "}
-              {[addr.detail, addr.ward, addr.district, addr.province]
-                .filter(Boolean)
-                .join(", ")}
-            </div>
-            {addr.note && (
-              <div>
-                <strong>Ghi chú:</strong> {addr.note}
-              </div>
-            )}
-          </>
-        );
-      },
     },
     {
       title: "Hành động",
       key: "actions",
-      render: (_, order) => (
+      fixed: "right",
+      render: (_, record) => (
         <Button
           size="small"
+          icon={<EyeOutlined />}
           type="primary"
-          onClick={() => navigate(`/admin/orders/${order._id}`)}
+          onClick={() => navigate(`/admin/orders/${record._id}`)}
         >
           Xem chi tiết
         </Button>
@@ -197,49 +213,69 @@ const OrderListPage = () => {
   ];
 
   return (
-    <div className="container py-4">
-      <Card>
-        <Title level={3}>Quản lý đơn hàng</Title>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            marginBottom: 16,
-            flexWrap: "wrap",
-          }}
+    <Card
+      title={
+        <Space>
+          <ShoppingOutlined />
+          <span>Quản lý đơn hàng</span>
+        </Space>
+      }
+      extra={
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchOrders}
+          loading={loading}
         >
-          <span>Lọc theo trạng thái:</span>
-          <Select
-            placeholder="Tất cả"
-            allowClear
-            style={{ width: 200 }}
-            value={filter || undefined}
-            onChange={(val) => setFilter(val)}
-          >
-            {statusOptions.map((s) => (
-              <Option key={s} value={s}>
-                {s}
-              </Option>
-            ))}
-          </Select>
-        </div>
+          Làm mới
+        </Button>
+      }
+      className="shadow-md rounded-xl"
+    >
+      {/* Bộ lọc tìm kiếm */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          marginBottom: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <Input
+          placeholder="Tìm theo tên khách hàng hoặc mã đơn"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ width: 280 }}
+        />
+        <Select
+          placeholder="Lọc theo trạng thái"
+          value={filter || undefined}
+          onChange={(val) => setFilter(val)}
+          allowClear
+          style={{ width: 200 }}
+        >
+          {statusOptions.map((s) => (
+            <Option key={s.value} value={s.value}>
+              {s.label}
+            </Option>
+          ))}
+        </Select>
+      </div>
 
-        {loading ? (
-          <div className="text-center py-5">
-            <Spin size="large" />
-          </div>
-        ) : (
-          <Table
-            columns={columns}
-            dataSource={orders}
-            rowKey="_id"
-            bordered
-            pagination={{ pageSize: 6 }}
-          />
-        )}
-      </Card>
-    </div>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40 }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Table
+          bordered
+          rowKey="_id"
+          columns={columns}
+          dataSource={filteredOrders}
+          pagination={{ pageSize: 8 }}
+          scroll={{ x: true }}
+        />
+      )}
+    </Card>
   );
 };
 

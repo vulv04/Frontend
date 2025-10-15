@@ -26,4 +26,4 @@ export const deleteOrder = (id) => {
   return api.delete(`/api/orders/${id}`);
 };
 export const cancelOrder = (orderId, data) =>
-  axios.put(`/orders/${orderId}/cancel`, data);
+  api.put(`api/orders/${orderId}/cancel`, data);
